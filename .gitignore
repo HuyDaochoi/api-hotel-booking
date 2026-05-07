@@ -1,0 +1,40 @@
+# ── JAVA & MAVEN ──────────────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+build/
+.mtj.tmp/
+*.class
+*.war
+*.ear
+*.jar
+*.zip
+*.tar.gz
+*.rar
+
+# ── IDE (IntelliJ, VS Code, Eclipse) ─────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+
+# ── LOGS & TEMP ───────────────────────────────────────
+*.log
+logs/
+temp/
+tmp/
+
+# ── OS SPECIFIC ───────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── LOCAL CONFIG (Quan trọng!) ───────────────────────
+# Không đẩy thông tin nhạy cảm như mật khẩu DB lên Git
+.env
+local.properties
+help.md
