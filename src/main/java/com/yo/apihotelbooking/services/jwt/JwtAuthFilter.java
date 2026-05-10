@@ -33,29 +33,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         // 1. Đọc header Authorization
         final String authHeader = request.getHeader("Authorization");
 
-        // 2. Không có token hoặc sai format → cho qua, SecurityConfig sẽ chặn nếu cần
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 3. Tách lấy JWT (bỏ "Bearer ")
         final String jwt = authHeader.substring(7);
 
         try {
-            // 4. Extract email từ token
             final String email = jwtService.extractEmail(jwt);
 
-            // 5. Chỉ xử lý nếu chưa có authentication trong context
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 // 6. Load user từ DB
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                // 7. Validate token (email khớp + còn hạn)
                 if (jwtService.isTokenValid(jwt, userDetails)) {
 
-                    // 8. Tạo Authentication và set vào SecurityContext
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -72,18 +66,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (ExpiredJwtException e) {
-            // Token hết hạn → trả 401, client cần dùng refresh token
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
                     "TOKEN_EXPIRED", "Token đã hết hạn, vui lòng đăng nhập lại");
 
         } catch (JwtException e) {
-            // Token giả mạo hoặc bị sửa → trả 401
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
                     "TOKEN_INVALID", "Token không hợp lệ");
         }
     }
 
-    // ── Helper: viết JSON error response ────────────────────────────
     private void sendErrorResponse(
             HttpServletResponse response,
             int status,

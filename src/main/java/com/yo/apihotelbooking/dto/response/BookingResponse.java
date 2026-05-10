@@ -1,6 +1,6 @@
 package com.yo.apihotelbooking.dto.response;
 import com.yo.apihotelbooking.schemas.enums.BookingStatus;
-import lombok.Builder;
+
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;

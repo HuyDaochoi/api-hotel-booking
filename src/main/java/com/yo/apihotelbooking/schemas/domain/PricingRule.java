@@ -19,7 +19,7 @@ public class PricingRule  extends AuditableEntity {
 
     @Column(name = "rule_name")
     private String ruleName;
-
+    private Integer dayOfWeek;
     @Enumerated(EnumType.STRING)
     private PricingRuleType ruleType;
 
