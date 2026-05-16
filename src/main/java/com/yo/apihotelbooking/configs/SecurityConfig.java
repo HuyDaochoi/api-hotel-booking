@@ -46,7 +46,9 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
-
+                //booking
+                .requestMatchers("/api/bookings/my").hasRole("CUSTOMER")
+                .requestMatchers("/api/bookings/**").authenticated()
                 // ── STAFF + ADMIN: đặt TRƯỚC rule /api/admin/** ──────────
                 // Vì Spring đọc từ trên xuống, rule cụ thể phải đứng trước rule tổng quát
                 .requestMatchers(

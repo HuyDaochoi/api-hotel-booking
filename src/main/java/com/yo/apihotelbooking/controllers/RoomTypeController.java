@@ -1,5 +1,5 @@
 package com.yo.apihotelbooking.controllers;
-
+//admin + public đều có thể xem danh sách loại phòng và chi tiết loại phòng, nhưng chỉ admin mới được tạo/sửa/xóa loại phòng
 import org.springframework.web.bind.annotation.*;
 
 import com.yo.apihotelbooking.common.ApiResponse;
@@ -29,14 +29,14 @@ public class RoomTypeController {
     public ApiResponse<RoomTypeResponse> getById(@PathVariable Long id) throws NotFoundException {
         return ApiResponse.success(roomTypeService.getById(id));
     }
-
+// chua phan quyen
     @PostMapping
     public ApiResponse<RoomTypeResponse> create(
             @Valid @RequestBody CreateRoomTypeRequest req
     ) {
         return ApiResponse.success("Created", roomTypeService.create(req));
     }
-
+//chua phan quyen
     @PutMapping("/{id}")
     public ApiResponse<RoomTypeResponse> update(
             @PathVariable Long id,
@@ -44,7 +44,7 @@ public class RoomTypeController {
     ) throws NotFoundException {
         return ApiResponse.success("Updated", roomTypeService.update(id, req));
     }
-
+//sua lai xoa kieu isDeleted thanh isActive = false, de luu lai lich su phong thay vi xoa vinh vien
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@PathVariable Long id) throws NotFoundException {
         roomTypeService.delete(id);

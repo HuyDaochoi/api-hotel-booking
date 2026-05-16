@@ -2,6 +2,7 @@ package com.yo.apihotelbooking.services;
 
 import com.yo.apihotelbooking.common.exception.BadRequestException;
 import com.yo.apihotelbooking.common.exception.NotFoundException;
+import com.yo.apihotelbooking.common.util.SecurityUtils;
 import com.yo.apihotelbooking.dto.request.BookingRequest;
 import com.yo.apihotelbooking.dto.response.BookingResponse;
 import com.yo.apihotelbooking.dto.response.PricingEstimateResponse;
@@ -10,16 +11,19 @@ import com.yo.apihotelbooking.schemas.domain.BookingStatusHistory;
 import com.yo.apihotelbooking.schemas.domain.Room;
 import com.yo.apihotelbooking.schemas.domain.User;
 import com.yo.apihotelbooking.schemas.enums.BookingStatus;
+import com.yo.apihotelbooking.schemas.enums.UserRole;
 import com.yo.apihotelbooking.repository.BookingRepository;
 import com.yo.apihotelbooking.repository.BookingStatusHistoryRepository;
 import com.yo.apihotelbooking.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.time.LocalDateTime;
 import com.yo.apihotelbooking.repository.UserRepository;
+import org.springframework.data.domain.Page;
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -81,4 +85,78 @@ public void updateBookingStatus(Long bookingId, BookingStatus newStatus, User pe
     history.setChangedAt(LocalDateTime.now());
     historyRepository.save(history);
 }
+
+public Page<Booking> getMyBookings(User currentUser, int page, int size) {
+        return bookingRepository.findByUserId(currentUser.getId(), PageRequest.of(page, size));
+    }
+
+public Booking getBookingDetail(Long id) {
+        User currentUser = SecurityUtils.getCurrentUser(); //
+        if (currentUser == null) throw new RuntimeException("Bạn chưa đăng nhập!");
+
+        Booking booking = bookingRepository.findDetailById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt phòng!"));
+
+        if (!(booking.getUser().getId().equals(currentUser.getId()) || currentUser.getRole() == UserRole.ADMIN || currentUser.getRole() == UserRole.STAFF)) {
+            throw new RuntimeException("Bạn không có quyền xem thông tin này!");
+        }
+        return booking;
+    }
+
+
+   @Transactional
+    public void cancelBooking(Long id) {
+        User currentUser = SecurityUtils.getCurrentUser();
+ 
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn đặt phòng!"));
+ 
+        if (!booking.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("Bạn không có quyền hủy đơn này!");
+        }
+ 
+        // Chỉ cho hủy khi đang PENDING hoặc CONFIRMED
+        if (booking.getStatus() != BookingStatus.PENDING
+                && booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new RuntimeException("Chỉ có thể hủy đơn khi đang ở trạng thái PENDING hoặc CONFIRMED!");
+        }
+ 
+        LocalDateTime now      = LocalDateTime.now();
+        // Deadline: trước 24h so với checkInDate
+        LocalDateTime deadline = booking.getCheckInDate().atStartOfDay().minusHours(24);
+ 
+        BookingStatus oldStatus = booking.getStatus();
+        booking.setStatus(BookingStatus.CANCELLED);
+        booking.setCancelledAt(now);
+ 
+        String note;
+        if (now.isBefore(deadline)) {
+            // Hủy trong hạn → đủ điều kiện hoàn tiền
+            booking.setCancellationReason("Khách hủy trong hạn — đủ điều kiện hoàn tiền");
+            note = "Customer cancelled before deadline — refund eligible";
+            // TODO: trigger refund event
+        } else {
+            // Hủy trễ → không hoàn tiền
+            booking.setCancellationReason("Khách hủy trễ (< 24h trước check-in) — không hoàn tiền");
+            note = "Customer cancelled after deadline — no refund";
+        }
+ 
+        bookingRepository.save(booking);
+        saveHistory(booking, oldStatus, BookingStatus.CANCELLED, currentUser, note);
+    }
+ 
+    // ─────────────────────────────────────────────────────────────
+    // Helper: tạo và lưu 1 dòng status history
+    // ─────────────────────────────────────────────────────────────
+    private void saveHistory(Booking booking, BookingStatus oldStatus,
+                             BookingStatus newStatus, User changedBy, String note) {
+        BookingStatusHistory history = new BookingStatusHistory();
+        history.setBooking(booking);
+        history.setOldStatus(oldStatus);
+        history.setNewStatus(newStatus);
+        history.setChangedBy(changedBy);    // ✅ User object — khớp với entity của bạn
+        history.setNote(note);
+        history.setChangedAt(LocalDateTime.now());
+        historyRepository.save(history);
+    }
 }

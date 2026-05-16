@@ -4,17 +4,21 @@ import com.yo.apihotelbooking.dto.response.BookingResponse;
 import com.yo.apihotelbooking.services.BookingService;
 import com.yo.apihotelbooking.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import com.yo.apihotelbooking.schemas.domain.User;
-import com.yo.apihotelbooking.schemas.enums.BookingStatus;
-import com.yo.apihotelbooking.repository.UserRepository;
+import com.yo.apihotelbooking.schemas.domain.Booking;
+
+
 import com.yo.apihotelbooking.common.exception.NotFoundException;
 import com.yo.apihotelbooking.common.util.SecurityUtils;
-import com.yo.apihotelbooking.common.ApiResponse;
-import com.yo.apihotelbooking.dto.request.BookingRequest;
-import com.yo.apihotelbooking.dto.response.BookingResponse;
+
+
 import com.yo.apihotelbooking.dto.request.UpdateBookingStatusRequest;
+import org.springframework.data.domain.Page;
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
@@ -41,4 +45,25 @@ public ApiResponse<?> updateStatus(
     bookingService.updateBookingStatus(id, request.getStatus(), admin, request.getNote());
     return ApiResponse.success("Cập nhật trạng thái thành công", null);
 }
+
+@GetMapping("/my")
+    public ResponseEntity<Page<Booking>> getMyBookings(
+            @AuthenticationPrincipal User currentUser, 
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(bookingService.getMyBookings(currentUser, page, size));
+    }
+@GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<Booking>> getBookingDetail(@PathVariable Long id) {
+        Booking booking = bookingService.getBookingDetail(id);
+        return ResponseEntity.ok(ApiResponse.success("Lấy chi tiết thành công", booking));
+    }
+@DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> cancelBooking(@PathVariable Long id) {
+        bookingService.cancelBooking(id);
+        return ResponseEntity.ok(ApiResponse.successMessage("Hủy đơn đặt phòng thành công!"));
+    }
+
+
 }

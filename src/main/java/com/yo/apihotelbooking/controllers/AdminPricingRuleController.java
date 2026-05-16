@@ -1,7 +1,7 @@
 package com.yo.apihotelbooking.controllers;
 
-import com.yo.apihotelbooking.schemas.domain.PricingRule;
-import com.yo.apihotelbooking.services.PricingService; // Giả định bạn để logic xử lý CRUD ở đây
+
+import com.yo.apihotelbooking.services.PricingService;
 
 import jakarta.validation.Valid;
 
@@ -10,6 +10,8 @@ import com.yo.apihotelbooking.dto.request.PricingRuleRequest;
 import com.yo.apihotelbooking.dto.response.PricingRuleResponse;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin/pricing-rules")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')") 
 public class AdminPricingRuleController {
 
     private final PricingService pricingService;

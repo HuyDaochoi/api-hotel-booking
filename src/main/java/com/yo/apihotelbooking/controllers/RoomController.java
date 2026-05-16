@@ -9,7 +9,7 @@ import com.yo.apihotelbooking.services.RoomService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
+//admin + staff đều có thể xem danh sách phòng và chi tiết phòng, nhưng chỉ admin mới được tạo/sửa/xóa phòng
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
