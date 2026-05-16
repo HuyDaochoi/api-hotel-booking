@@ -1,75 +1,62 @@
 package com.yo.apihotelbooking.controllers;
 
-import org.springframework.web.bind.annotation.RestController;
-
 import com.yo.apihotelbooking.common.ApiResponse;
 import com.yo.apihotelbooking.dto.request.CreateRoomRequest;
 import com.yo.apihotelbooking.dto.response.RoomResponse;
 import com.yo.apihotelbooking.services.RoomService;
-
+import com.yo.apihotelbooking.common.exception.NotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-//admin + staff đều có thể xem danh sách phòng và chi tiết phòng, nhưng chỉ admin mới được tạo/sửa/xóa phòng
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import com.yo.apihotelbooking.common.exception.NotFoundException;
 
 @RestController
-@RequestMapping("/api/rooms")
 @RequiredArgsConstructor
 public class RoomController {
 
     private final RoomService roomService;
 
-    @GetMapping
+    @GetMapping("/api/rooms/available")
+    public ApiResponse<List<RoomResponse>> getAvailable(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkOut) {
+        return ApiResponse.success(roomService.getAvailable(checkIn, checkOut));
+    }
+
+    @GetMapping("/api/rooms/{id}")
+    public ApiResponse<RoomResponse> getById(@PathVariable Long id) throws NotFoundException {
+        return roomService.findById(id)
+                .map(ApiResponse::success)
+                .orElseThrow(() -> new NotFoundException("Room not found: " + id));
+    }
+
+    @GetMapping("/api/admin/rooms")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<List<RoomResponse>> getAll() {
         return ApiResponse.success(roomService.getAll());
     }
 
-    @GetMapping("/{id}")
-    public ApiResponse<RoomResponse> getById(@PathVariable Long id) throws NotFoundException {
-        return roomService.findById(id)
-                .map(ApiResponse::success)
-                .orElseThrow(() -> new NotFoundException("Room not found with id: " + id));
-    }
-
-    @GetMapping("/available")
-    public ApiResponse<List<RoomResponse>> getAvailable(
-            @RequestParam LocalDate checkIn,
-            @RequestParam LocalDate checkOut
-    ) {
-        return ApiResponse.success(
-                roomService.getAvailable(checkIn, checkOut)
-        );
-    }
-
-    @PostMapping
-    public ApiResponse<RoomResponse> create(@Valid @RequestBody CreateRoomRequest req)
-            throws NotFoundException {
+    @PostMapping("/api/admin/rooms")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<RoomResponse> create(
+            @Valid @RequestBody CreateRoomRequest req) throws NotFoundException {
         return ApiResponse.success("Created", roomService.create(req));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/api/admin/rooms/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<RoomResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody CreateRoomRequest req
-    ) throws NotFoundException {
-        return ApiResponse.success(
-                "Updated",
-                roomService.update(id, req)
-        );
+            @Valid @RequestBody CreateRoomRequest req) throws NotFoundException {
+        return ApiResponse.success("Updated", roomService.update(id, req));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/api/admin/rooms/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ApiResponse<Void> delete(@PathVariable Long id) throws NotFoundException {
         roomService.delete(id);
         return ApiResponse.success("Deleted", null);

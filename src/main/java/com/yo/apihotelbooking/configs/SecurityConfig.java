@@ -25,7 +25,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final CustomUserDetailsService userDetailsService; 
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -36,32 +36,34 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
 
-                // ── PUBLIC: không cần token ──────────────────────────────
+                // PUBLIC — không cần token
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/rooms/available",
-                    "/api/room-types/**",
+                    "/api/rooms/{id}",              // GET chi tiết phòng
+                    "/api/room-types",              // GET danh sách loại phòng
+                    "/api/room-types/{id}",         // GET chi tiết loại phòng
                     "/api/pricing/estimate",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
-                //booking
-                .requestMatchers("/api/bookings/my").hasRole("CUSTOMER")
-                .requestMatchers("/api/bookings/**").authenticated()
-                // ── STAFF + ADMIN: đặt TRƯỚC rule /api/admin/** ──────────
-                // Vì Spring đọc từ trên xuống, rule cụ thể phải đứng trước rule tổng quát
+
+                // STAFF + ADMIN — đặt TRƯỚC /api/admin/** để rule cụ thể được ưu tiên
                 .requestMatchers(
                     "/api/admin/bookings/*/check-in",
                     "/api/admin/bookings/*/check-out",
                     "/api/admin/bookings/*/confirm",
-                    "/api/admin/bookings/*/no-show"
+                    "/api/admin/bookings/*/no-show",
+                    "/api/admin/bookings"
                 ).hasAnyRole("STAFF", "ADMIN")
 
-                // ── ADMIN only ────────────────────────────────────────────
+                // ADMIN only
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // ── Còn lại phải đăng nhập ───────────────────────────────
+                // Customer booking — tất cả role đã login đều xem được booking của mình
+                .requestMatchers("/api/bookings/**").authenticated()
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -69,12 +71,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-@Bean
-public AuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService); 
-    provider.setPasswordEncoder(passwordEncoder());
-    return provider;
-}
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
