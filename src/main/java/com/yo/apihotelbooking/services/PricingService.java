@@ -96,6 +96,29 @@ public class PricingService {
 
 
     private void mapRequestToEntity(PricingRuleRequest request, PricingRule entity) throws NotFoundException {
+        // Validate: chỉ được 1 trong 2 (priceModifier hoặc pricePercent)
+        if (request.getPriceModifier() != null && request.getPricePercent() != null) {
+            throw new RuntimeException("Chỉ được dùng một trong hai: priceModifier hoặc pricePercent");
+        }
+        if (request.getPriceModifier() == null && request.getPricePercent() == null) {
+            throw new RuntimeException("Phải có ít nhất một trong hai: priceModifier hoặc pricePercent");
+        }
+
+        // Validate: SEASONAL/SPECIAL_EVENT bắt buộc startDate ≤ endDate
+        if (request.getRuleType() != null) {
+            boolean needsDateRange = request.getRuleType().name().equals("SEASONAL")
+                    || request.getRuleType().name().equals("SPECIAL_EVENT")
+                    || request.getRuleType().name().equals("DISCOUNT");
+            if (needsDateRange) {
+                if (request.getStartDate() == null || request.getEndDate() == null) {
+                    throw new RuntimeException("Loại rule " + request.getRuleType() + " bắt buộc phải có startDate và endDate");
+                }
+                if (request.getStartDate().isAfter(request.getEndDate())) {
+                    throw new RuntimeException("startDate phải nhỏ hơn hoặc bằng endDate");
+                }
+            }
+        }
+
         entity.setRuleName(request.getRuleName());
         entity.setRuleType(request.getRuleType());
 
@@ -103,15 +126,15 @@ public class PricingService {
         entity.setEndDate(request.getEndDate());
         entity.setPriceModifier(request.getPriceModifier());
         entity.setPricePercent(request.getPricePercent());
-       entity.setMinNights(request.getMinNights() != null ? request.getMinNights() : 1);
-    entity.setPriority(request.getPriority() != null ? request.getPriority() : 0);
-    entity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
+        entity.setMinNights(request.getMinNights() != null ? request.getMinNights() : 1);
+        entity.setPriority(request.getPriority() != null ? request.getPriority() : 0);
+        entity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
 
-       if (request.getRoomTypeId() != null) {
-        RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
-            .orElseThrow(() -> new NotFoundException("Không tìm thấy loại phòng ID: " + request.getRoomTypeId()));
-        entity.setRoomType(roomType);
-    }
+        if (request.getRoomTypeId() != null) {
+            RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy loại phòng ID: " + request.getRoomTypeId()));
+            entity.setRoomType(roomType);
+        }
     }
 
     private PricingRuleResponse mapToResponse(PricingRule entity) {

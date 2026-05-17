@@ -40,16 +40,16 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/rooms/available",
-                    "/api/rooms/{id}",              // GET chi tiết phòng
-                    "/api/room-types",              // GET danh sách loại phòng
-                    "/api/room-types/{id}",         // GET chi tiết loại phòng
+                    "/api/rooms/{id}",            
+                    "/api/room-types",             
+                    "/api/room-types/{id}",         
                     "/api/pricing/estimate",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
 
-                // STAFF + ADMIN — đặt TRƯỚC /api/admin/** để rule cụ thể được ưu tiên
+                
                 .requestMatchers(
                     "/api/admin/bookings/*/check-in",
                     "/api/admin/bookings/*/check-out",

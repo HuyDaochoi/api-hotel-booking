@@ -8,13 +8,18 @@ import com.yo.apihotelbooking.dto.response.UserResponse;
 import com.yo.apihotelbooking.dto.response.BookingStatusHistoryResponse;
 import com.yo.apihotelbooking.repository.BookingRepository;
 import com.yo.apihotelbooking.repository.BookingSpecification;
+import com.yo.apihotelbooking.repository.PaymentRepository;
 import com.yo.apihotelbooking.repository.RoomRepository;
 import com.yo.apihotelbooking.repository.UserRepository;
 import com.yo.apihotelbooking.repository.BookingStatusHistoryRepository;
 import com.yo.apihotelbooking.schemas.domain.Booking;
 import com.yo.apihotelbooking.schemas.domain.BookingStatusHistory;
+import com.yo.apihotelbooking.schemas.domain.Payment;
 import com.yo.apihotelbooking.schemas.domain.User;
 import com.yo.apihotelbooking.schemas.enums.BookingStatus;
+import com.yo.apihotelbooking.schemas.enums.PaymentMethod;
+import com.yo.apihotelbooking.schemas.enums.PaymentStatus;
+import com.yo.apihotelbooking.schemas.enums.PaymentType;
 import com.yo.apihotelbooking.common.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -34,6 +39,7 @@ public class AdminBookingService {
 
     private final BookingRepository bookingRepository;
     private final BookingStatusHistoryRepository historyRepository;
+    private final PaymentRepository paymentRepository;
 
     // ─────────────────────────────────────────────────────────────
     // 1. GET /api/admin/bookings — filter + phân trang
@@ -131,8 +137,22 @@ public class AdminBookingService {
         booking.setCancelledAt(LocalDateTime.now());
         booking.setCancellationReason(reason);
 
+        // Admin hủy → hoàn tiền nếu chưa check-in
+        if (oldStatus == BookingStatus.PENDING || oldStatus == BookingStatus.CONFIRMED) {
+            Payment refund = new Payment();
+            refund.setBooking(booking);
+            refund.setPaymentType(PaymentType.REFUND);
+            refund.setAmount(booking.getTotalAmount());
+            refund.setPaymentMethod(PaymentMethod.SIMULATED);
+            refund.setStatus(PaymentStatus.SUCCESS);
+            refund.setTransactionRef("ADMIN-REFUND-" + booking.getId() + "-" + System.currentTimeMillis());
+            refund.setNote("Admin cancelled. Reason: " + reason);
+            refund.setProcessedAt(LocalDateTime.now());
+            paymentRepository.save(refund);
+        }
+
         saveHistory(booking, oldStatus, BookingStatus.CANCELLED,
-                "Cancelled by admin. Reason: " + reason);
+                "Admin cancelled. Reason: " + reason);
 
         return toResponse(bookingRepository.save(booking));
     }
