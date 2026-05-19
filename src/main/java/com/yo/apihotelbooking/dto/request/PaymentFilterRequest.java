@@ -8,9 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 
-/**
- * DTO bọc các tham số lọc tìm kiếm giao dịch từ URL Request.
- */
 @Data
 public class PaymentFilterRequest {
     private Long bookingId;

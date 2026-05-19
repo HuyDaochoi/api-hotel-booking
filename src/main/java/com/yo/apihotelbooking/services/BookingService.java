@@ -74,10 +74,10 @@ public class BookingService {
         payment.setBooking(saved);
         payment.setPaymentType(PaymentType.PAYMENT);
         payment.setAmount(saved.getTotalAmount());
-        payment.setPaymentMethod(PaymentMethod.SIMULATED);
-        payment.setStatus(PaymentStatus.SUCCESS);
+        payment.setPaymentMethod(request.getPaymentMethod());
+        payment.setStatus(PaymentStatus.PENDING);
         payment.setTransactionRef("TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        payment.setNote("Auto payment on booking creation");
+        payment.setNote("Chờ khách hàng thanh toán cho đơn đặt phòng");
         payment.setProcessedAt(LocalDateTime.now());
         paymentRepository.save(payment);
 

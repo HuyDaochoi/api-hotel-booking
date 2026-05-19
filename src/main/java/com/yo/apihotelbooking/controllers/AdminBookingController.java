@@ -18,11 +18,6 @@ public class AdminBookingController {
 
     private final AdminBookingService adminBookingService;
 
-    // ─────────────────────────────────────────────────────────────
-    // GET /api/admin/bookings
-    // Filter: status, checkIn, checkOut, roomId, userId | phân trang
-    // Role: ADMIN, STAFF
-    // ─────────────────────────────────────────────────────────────
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<Page<BookingResponse>> getAllBookings(
@@ -31,10 +26,7 @@ public class AdminBookingController {
         return ResponseEntity.ok(adminBookingService.getAllBookings(filter));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // PUT /api/admin/bookings/{id}/confirm
-    // PENDING → CONFIRMED | Role: STAFF, ADMIN
-    // ─────────────────────────────────────────────────────────────
+
     @PutMapping("/{id}/confirm")
     @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<BookingResponse> confirmBooking(@PathVariable Long id) {

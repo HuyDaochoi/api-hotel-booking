@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Data;
+import com.yo.apihotelbooking.schemas.domain.RoomImage;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,5 +36,10 @@ public class RoomType extends AuditableEntity {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-   
+   @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("sortOrder ASC") // Tự động sắp xếp ảnh theo thứ tự khi query
+    private List<RoomImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<RoomAmenity> amenities = new ArrayList<>();
 }

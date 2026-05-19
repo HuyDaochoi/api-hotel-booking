@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -23,5 +24,7 @@ public class RoomTypeResponse {
     private String cancellationPolicy;
 
     private Boolean isActive = true;
+    private List<RoomImageResponse> images;
+    private List<RoomAmenityResponse> amenities;
 
 }

@@ -8,13 +8,14 @@ import com.yo.apihotelbooking.schemas.domain.Room;
 import com.yo.apihotelbooking.services.RoomService;
 import com.yo.apihotelbooking.common.exception.NotFoundException;
 import com.yo.apihotelbooking.dto.request.CreateRoomRequest;
+import com.yo.apihotelbooking.dto.response.RoomAmenityResponse;
+import com.yo.apihotelbooking.dto.response.RoomImageResponse;
 import com.yo.apihotelbooking.dto.response.RoomResponse;
 import com.yo.apihotelbooking.dto.response.RoomTypeResponse;
 import com.yo.apihotelbooking.repository.RoomRepository;
 import com.yo.apihotelbooking.repository.RoomTypeRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
@@ -23,30 +24,55 @@ public class RoomServiceImpl implements RoomService {
     private final RoomRepository roomRepository;
     private final RoomTypeRepository roomTypeRepository;
 
-    private RoomResponse map(Room room) {
-        RoomResponse res = new RoomResponse();
+   // Thay thế hàm map(Room room) hiện tại bằng hàm này:
+private RoomResponse map(Room room) {
+    RoomResponse res = new RoomResponse();
 
-        res.setId(room.getId());
-        res.setRoomNumber(room.getRoomNumber());
-        res.setFloor(room.getFloor());
+    res.setId(room.getId());
+    res.setRoomNumber(room.getRoomNumber());
+    res.setFloor(room.getFloor());
 
-        if (room.getRoomType() != null) {
-            var rt = room.getRoomType();
+    if (room.getRoomType() != null) {
+        var rt = room.getRoomType();
 
-            RoomTypeResponse type = new RoomTypeResponse();
-            type.setName(rt.getName());
-            type.setDescription(rt.getDescription());
-            type.setBasePrice(rt.getBasePrice());
-            type.setMaxCapacity(rt.getMaxCapacity());
+        RoomTypeResponse type = new RoomTypeResponse();
+        type.setId(rt.getId());
+        type.setName(rt.getName());
+        type.setDescription(rt.getDescription());
+        type.setBasePrice(rt.getBasePrice());
+        type.setMaxCapacity(rt.getMaxCapacity());
 
-            res.setRoomType(type);
+        // --- Đổ dữ liệu Images từ RoomType sang DTO ---
+        if (rt.getImages() != null) {
+            type.setImages(rt.getImages().stream().map(img -> {
+                RoomImageResponse imgDto = new RoomImageResponse();
+                imgDto.setId(img.getId());
+                imgDto.setImageUrl(img.getImageUrl());
+                imgDto.setCaption(img.getCaption());
+                imgDto.setIsPrimary(img.getIsPrimary());
+                return imgDto;
+            }).toList());
         }
 
-        return res;
+        // --- Đổ dữ liệu Amenities từ RoomType sang DTO ---
+        if (rt.getAmenities() != null) {
+            type.setAmenities(rt.getAmenities().stream().map(amn -> {
+                RoomAmenityResponse amnDto = new RoomAmenityResponse();
+                amnDto.setId(amn.getId());
+                amnDto.setAmenityName(amn.getAmenityName());
+                amnDto.setIconCode(amn.getIconCode());
+                return amnDto;
+            }).toList());
+        }
+
+        res.setRoomType(type);
     }
 
+    return res;
+}
+
     public List<RoomResponse> getAll() {
-        return roomRepository.findAll()
+        return roomRepository.findAllWithDetails()
                 .stream()
                 .map(this::map)
                 .toList();

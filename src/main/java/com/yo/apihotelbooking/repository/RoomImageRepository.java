@@ -1,9 +1,9 @@
 package com.yo.apihotelbooking.repository;
-import com.yo.apihotelbooking.schemas.domain.RoomImages;
+import com.yo.apihotelbooking.schemas.domain.RoomImage;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
-public interface RoomImageRepository extends JpaRepository<RoomImages, Long> {
+public interface RoomImageRepository extends JpaRepository<RoomImage, Long> {
 
-    List<RoomImages> findByRoomTypeId(Long roomTypeId);
+    List<RoomImage> findByRoomTypeId(Long roomTypeId);
 
 }

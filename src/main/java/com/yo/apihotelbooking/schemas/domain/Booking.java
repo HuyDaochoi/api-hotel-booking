@@ -3,8 +3,6 @@ package com.yo.apihotelbooking.schemas.domain;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.yo.apihotelbooking.schemas.AuditableEntity;
 import com.yo.apihotelbooking.schemas.enums.BookingStatus;
 

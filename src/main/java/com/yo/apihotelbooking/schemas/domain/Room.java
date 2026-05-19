@@ -9,10 +9,6 @@ import java.util.List;
 public class Room extends AuditableEntity {
    
 
-    @ManyToOne
-    @JoinColumn(name = "room_type_id", nullable = false)
-    private RoomType roomType;
-
      @Column(name = "room_number", nullable = false, unique = true)
     private String roomNumber;
     @Column(name = "floor")
@@ -23,6 +19,8 @@ public class Room extends AuditableEntity {
  @Column(name = "is_active")
     private Boolean isActive = true;
 
-   
+   @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_type_id", nullable = false)
+    private RoomType roomType; 
   
 }

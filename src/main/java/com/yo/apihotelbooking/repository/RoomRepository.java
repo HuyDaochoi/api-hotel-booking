@@ -8,7 +8,11 @@ import java.util.Optional;
 public interface RoomRepository extends JpaRepository<Room, Long> {
 
     Optional<Room> findByRoomNumber(String roomNumber);
-
+    @Query("SELECT DISTINCT r FROM Room r " +
+           "LEFT JOIN FETCH r.roomType rt " +
+           "LEFT JOIN FETCH rt.images " +
+           "LEFT JOIN FETCH rt.amenities")
+    List<Room> findAllWithDetails();
 
     @Query(value = """
         SELECT r.* FROM rooms r
