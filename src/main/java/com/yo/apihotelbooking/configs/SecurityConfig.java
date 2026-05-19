@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity   
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -35,34 +35,33 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-
-                // PUBLIC — không cần token
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/rooms/available",
-                    "/api/rooms/{id}",            
-                    "/api/room-types",             
-                    "/api/room-types/{id}",         
+                    "/api/rooms/*",              
+                    "/api/room-types",
+                    "/api/room-types/*",
                     "/api/pricing/estimate",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
 
-                
                 .requestMatchers(
+                    "/api/admin/bookings",
+                    "/api/admin/bookings/*/confirm",
                     "/api/admin/bookings/*/check-in",
                     "/api/admin/bookings/*/check-out",
-                    "/api/admin/bookings/*/confirm",
                     "/api/admin/bookings/*/no-show",
-                    "/api/admin/bookings"
-                ).hasAnyRole("STAFF", "ADMIN")
-
-                // ADMIN only
+                    "/api/admin/users",         
+                    "/api/admin/users/*"       
+                ).hasAnyRole("STAFF", "ADMIN")       
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                // Customer booking — tất cả role đã login đều xem được booking của mình
-                .requestMatchers("/api/bookings/**").authenticated()
+                .requestMatchers(
+                    "/api/bookings/**",
+                    "/api/users/me",           
+                    "/api/users/me/password"      
+                ).authenticated()
 
                 .anyRequest().authenticated()
             )

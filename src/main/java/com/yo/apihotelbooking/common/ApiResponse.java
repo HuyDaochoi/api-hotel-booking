@@ -9,10 +9,10 @@ public record ApiResponse<T>(boolean success, String message, T data, @JsonForma
     public static <T> ApiResponse<T> success(T data){
         return success("Success", data);
     }
-    public static ApiResponse<Void> successMessage(String message){
+    public static <T> ApiResponse<T> successMessage(String message){
         return success(message, null);
     }
-    public static ApiResponse<Void> error(String message){
+    public static <T> ApiResponse<T> error(String message){
         return new ApiResponse<>(false, message, null, LocalDateTime.now());
     }
     public static <T> ApiResponse<T> error(String message, T data){

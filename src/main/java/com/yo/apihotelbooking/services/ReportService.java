@@ -16,21 +16,6 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-// ─────────────────────────────────────────────────────────────
-// NOTE (chưa sửa — code gốc giữ nguyên):
-//   1. RevenueRepository dùng native query "SELECT * FROM v_revenue_by_month"
-//      tức là cần có VIEW v_revenue_by_month trong DB mới chạy được.
-//      Service này KHÔNG dùng RevenueRepository mà tính trực tiếp từ
-//      Payment để tránh phụ thuộc vào view chưa chắc tồn tại.
-//   2. OccupancyReport tính theo số booking CONFIRMED/CHECKED_IN/CHECKED_OUT
-//      trong khoảng ngày. Chưa tính chính xác "số đêm × phòng" mà chỉ
-//      tính số booking / tổng phòng → con số gần đúng.
-//   3. groupBy theo day chưa implement — hiện chỉ hỗ trợ month và week
-//      do giới hạn của việc group trong Java stream, chưa đẩy xuống DB.
-//   4. PopularRoomTypes chưa sort theo "số đêm" mà sort theo số booking
-//      vì không có dữ liệu số đêm aggregate sẵn ở entity.
-// ─────────────────────────────────────────────────────────────
-
 @Service
 @RequiredArgsConstructor
 public class ReportService {

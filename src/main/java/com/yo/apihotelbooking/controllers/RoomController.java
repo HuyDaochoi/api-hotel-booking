@@ -19,7 +19,10 @@ import java.util.List;
 public class RoomController {
 
     private final RoomService roomService;
-
+    @GetMapping("/api/rooms")
+    public ApiResponse<List<RoomResponse>> getAll() {
+        return ApiResponse.success(roomService.getAll());
+    }
     @GetMapping("/api/rooms/available")
     public ApiResponse<List<RoomResponse>> getAvailable(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkIn,
@@ -34,11 +37,6 @@ public class RoomController {
                 .orElseThrow(() -> new NotFoundException("Room not found: " + id));
     }
 
-    @GetMapping("/api/admin/rooms")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<List<RoomResponse>> getAll() {
-        return ApiResponse.success(roomService.getAll());
-    }
 
     @PostMapping("/api/admin/rooms")
     @PreAuthorize("hasRole('ADMIN')")
