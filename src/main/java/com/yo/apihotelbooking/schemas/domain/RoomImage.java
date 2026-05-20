@@ -3,16 +3,15 @@ package com.yo.apihotelbooking.schemas.domain;
 import lombok.Data;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.yo.apihotelbooking.schemas.AuditableEntity;
+
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "room_images")
 @Data
-public class RoomImage {
+public class RoomImage extends AuditableEntity {
    
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 

@@ -6,6 +6,7 @@ import com.yo.apihotelbooking.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -27,7 +28,8 @@ public class BookingController {
     private final BookingService bookingService;
 
    @PostMapping
-    public ApiResponse<BookingResponse> create(
+    
+public ApiResponse<BookingResponse> create(
             @RequestBody @Valid BookingRequest request) throws Exception {
         User user = SecurityUtils.getCurrentUser();
         if (user == null) {
@@ -36,6 +38,7 @@ public class BookingController {
         return ApiResponse.success("Đặt phòng thành công",
                 bookingService.createBooking(request, user.getId()));
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
     public ApiResponse<BookingResponse> updateStatus(
         @PathVariable Long id, 

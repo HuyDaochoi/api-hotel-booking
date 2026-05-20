@@ -92,7 +92,7 @@ public class ReportService {
         final LocalDate finalFrom = from;
         final LocalDate finalTo = to;
 
-        // Lọc payments trong khoảng ngày có processedAt
+
         var payments = paymentRepository.findAll().stream()
                 .filter(p -> p.getProcessedAt() != null
                         && p.getStatus() == PaymentStatus.SUCCESS)

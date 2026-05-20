@@ -26,7 +26,6 @@ public class PaymentController {
                 paymentService.getPaymentsByBooking(bookingId));
     }
 
-    // Admin/Staff xem toàn bộ giao dịch với filter + phân trang
     @GetMapping("/api/admin/payments")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<Page<PaymentResponse>> getAllPayments(
@@ -38,7 +37,6 @@ public class PaymentController {
                 paymentService.getAllPaymentsForAdmin(filterRequest, page, size));
     }
 
-    // Admin/Staff xem chi tiết 1 giao dịch
     @GetMapping("/api/admin/payments/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ApiResponse<PaymentResponse> getPaymentDetail(@PathVariable Long id) {
@@ -46,4 +44,6 @@ public class PaymentController {
                 "Lấy thông tin chi tiết giao dịch thành công",
                 paymentService.getPaymentDetail(id));
     }
+
+    
 }

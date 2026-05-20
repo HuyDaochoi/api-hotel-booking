@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 @Data
 public class CreateRoomImageRequest {
+    
     @NotNull(message = "Room type ID cannot be null")
     private Long roomTypeId;
 

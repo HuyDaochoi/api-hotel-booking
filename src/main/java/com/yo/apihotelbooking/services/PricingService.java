@@ -25,7 +25,6 @@ public class PricingService {
     private final PricingRuleRepository pricingRuleRepository;
     private final RoomRepository roomRepository;
     private final RoomTypeRepository roomTypeRepository;
-//xem gia truioc
     public PricingEstimateResponse estimatePrice(Long roomId, LocalDate checkIn, LocalDate checkOut) throws NotFoundException {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy phòng với ID: " + roomId));

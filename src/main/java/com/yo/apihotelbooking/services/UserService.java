@@ -21,16 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly=true)
 public class UserService {
 
     private final UserRepository  userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // ═══════════════════════════════════════════════════════════
-    // CUSTOMER — hồ sơ cá nhân
-    // ═══════════════════════════════════════════════════════════
-
-    // GET /api/users/me — xem hồ sơ của chính mình
     public UserResponse getMyProfile() {
         User user = requireCurrentUser();
         return toResponse(user);
@@ -57,12 +53,12 @@ public class UserService {
             throw new BadRequestException("Mật khẩu hiện tại không đúng");
         }
 
-        // Kiểm tra xác nhận mật khẩu mới
+       
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new BadRequestException("Mật khẩu mới và xác nhận mật khẩu không khớp");
         }
 
-        // Không cho đặt lại mật khẩu trùng mật khẩu cũ
+      
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new BadRequestException("Mật khẩu mới không được trùng mật khẩu cũ");
         }
@@ -71,11 +67,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // ADMIN — quản lý toàn bộ user
-    // ═══════════════════════════════════════════════════════════
-
-    // GET /api/admin/users — danh sách user, filter + phân trang
     public Page<UserResponse> getAllUsers(UserRole role, Boolean isActive,
                                           String keyword, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -83,14 +74,12 @@ public class UserService {
                              .map(this::toResponse);
     }
 
-    // GET /api/admin/users/{id} — chi tiết 1 user
     public UserResponse getUserById(Long id) throws NotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng: " + id));
         return toResponse(user);
     }
 
-    // POST /api/admin/users — admin tạo user mới (CUSTOMER / STAFF / ADMIN)
     @Transactional
     public UserResponse createUser(AdminCreateUserRequest request) throws BadRequestException {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -112,7 +101,6 @@ public class UserService {
         return toResponse(userRepository.save(user));
     }
 
-    // PUT /api/admin/users/{id} — admin sửa thông tin + role + trạng thái
     @Transactional
     public UserResponse updateUser(Long id, AdminUpdateUserRequest request) throws NotFoundException {
         User user = userRepository.findById(id)
