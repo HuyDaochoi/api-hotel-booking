@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface RoomService {
     
-    List<RoomResponse> getAll();
+    List<RoomResponse> getAllRoomsWithDetails();
 
     Optional<RoomResponse> findById(Long id);
     List<RoomResponse> getAvailable(LocalDate checkIn, LocalDate checkOut);

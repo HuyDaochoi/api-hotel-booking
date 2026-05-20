@@ -41,9 +41,7 @@ public class AdminBookingService {
     private final BookingStatusHistoryRepository historyRepository;
     private final PaymentRepository paymentRepository;
 
-    // ─────────────────────────────────────────────────────────────
-    // 1. GET /api/admin/bookings — filter + phân trang
-    // ─────────────────────────────────────────────────────────────
+    
     @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookings(AdminBookingFilterRequest filter) {
         Sort sort = filter.getSortDir().equalsIgnoreCase("asc")
@@ -52,7 +50,7 @@ public class AdminBookingService {
 
         Pageable pageable = PageRequest.of(filter.getPage(), filter.getSize(), sort);
 
-        // ✅ FIX: gọi BookingSpecification.filterBy() trực tiếp, không qua spec package
+        
         Specification<Booking> spec = BookingSpecification.filterBy(
                 filter.getStatus(),
                 filter.getCheckIn(),
@@ -64,9 +62,7 @@ public class AdminBookingService {
         return bookingRepository.findAll(spec, pageable).map(this::toResponse);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 2. PUT /api/admin/bookings/{id}/confirm — PENDING → CONFIRMED
-    // ─────────────────────────────────────────────────────────────
+
     @Transactional
     public BookingResponse confirmBooking(Long id) {
         Booking booking = findOrThrow(id);
@@ -79,10 +75,6 @@ public class AdminBookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 3. PUT /api/admin/bookings/{id}/check-in
-    //    Validate: chỉ check-in đúng ngày checkInDate
-    // ─────────────────────────────────────────────────────────────
     @Transactional
     public BookingResponse checkIn(Long id) {
         Booking booking = findOrThrow(id);
@@ -103,9 +95,7 @@ public class AdminBookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4. PUT /api/admin/bookings/{id}/check-out
-    // ─────────────────────────────────────────────────────────────
+
     @Transactional
     public BookingResponse checkOut(Long id) {
         Booking booking = findOrThrow(id);
@@ -119,9 +109,6 @@ public class AdminBookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 5. PUT /api/admin/bookings/{id}/cancel — Admin hủy bất kỳ
-    // ─────────────────────────────────────────────────────────────
     @Transactional
     public BookingResponse cancelBooking(Long id, String reason) {
         Booking booking = findOrThrow(id);
@@ -137,7 +124,6 @@ public class AdminBookingService {
         booking.setCancelledAt(LocalDateTime.now());
         booking.setCancellationReason(reason);
 
-        // Admin hủy → hoàn tiền nếu chưa check-in
         if (oldStatus == BookingStatus.PENDING || oldStatus == BookingStatus.CONFIRMED) {
             Payment refund = new Payment();
             refund.setBooking(booking);
@@ -157,9 +143,7 @@ public class AdminBookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 6. PUT /api/admin/bookings/{id}/no-show
-    // ─────────────────────────────────────────────────────────────
+
     @Transactional
     public BookingResponse markNoShow(Long id) {
         Booking booking = findOrThrow(id);
@@ -172,9 +156,6 @@ public class AdminBookingService {
         return toResponse(bookingRepository.save(booking));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Helpers
-    // ─────────────────────────────────────────────────────────────
 
     private Booking findOrThrow(Long id) {
         return bookingRepository.findById(id)
@@ -200,20 +181,14 @@ public class AdminBookingService {
         history.setBooking(booking);
         history.setOldStatus(oldStatus);
         history.setNewStatus(newStatus);
-        history.setChangedBy(actor);           // ✅ User object — khớp entity của bạn
+        history.setChangedBy(actor);         
         history.setNote(note);
         history.setChangedAt(LocalDateTime.now());
         historyRepository.save(history);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Mapper: Booking → BookingResponse
-    // ✅ FIX: không dùng builder() — dùng new + setter vì BookingResponse của bạn dùng @Data
-    // ✅ FIX: dùng BookingStatusHistoryResponse (class của bạn), không phải StatusHistoryResponse
-    // ─────────────────────────────────────────────────────────────
     private BookingResponse toResponse(Booking b) {
 
-        // Map status histories
         List<BookingStatusHistoryResponse> histories =
                 historyRepository.findByBookingIdOrderByChangedAtDesc(b.getId())
                         .stream()
@@ -221,7 +196,6 @@ public class AdminBookingService {
                             BookingStatusHistoryResponse hr = new BookingStatusHistoryResponse();
                             hr.setOldStatus(h.getOldStatus());
                             hr.setNewStatus(h.getNewStatus());
-                            // changedBy là User object → lấy fullName để hiển thị
                             hr.setChangedBy(h.getChangedBy() != null
                                     ? h.getChangedBy().getFullName() : null);
                             hr.setNote(h.getNote());
@@ -230,7 +204,6 @@ public class AdminBookingService {
                         })
                         .toList();
 
-        // ✅ FIX: dùng new BookingResponse() + setter, không dùng .builder()
         BookingResponse res = new BookingResponse();
         res.setId(b.getId());
         res.setCheckInDate(b.getCheckInDate());
@@ -240,10 +213,6 @@ public class AdminBookingService {
         res.setStatus(b.getStatus());
         res.setSpecialRequests(b.getSpecialRequests());
         res.setCreatedAt(b.getCreatedAt());
-
-        // BookingResponse của bạn nhận UserResponse và RoomResponse
-        // → ModelMapper xử lý ở BookingService.createBooking()
-        // → Ở đây map thủ công để tránh lazy-load
         if (b.getUser() != null) {
             UserResponse userRes = new UserResponse();
             userRes.setId(b.getUser().getId());

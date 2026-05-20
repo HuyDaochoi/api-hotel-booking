@@ -36,7 +36,7 @@ public class RoomImageServiceImpl implements RoomImageService {
                 .orElseThrow(() -> new NotFoundException("RoomType not found with id: " + req.getRoomTypeId()));
 
         RoomImage roomImage = mapper.map(req, RoomImage.class);
-        roomImage.setRoomType(roomType); // Gán object cha để giữ khóa ngoại
+        roomImage.setRoomType(roomType); 
 
         return mapper.map(roomImageRepository.save(roomImage), RoomImageResponse.class);
     }

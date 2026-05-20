@@ -17,7 +17,7 @@ import java.util.List;
 public class AdminRoomAmenityController {
 
     private final RoomAmenityService roomAmenityService;
-
+    
     @GetMapping("/room-type/{roomTypeId}")
     public ResponseEntity<List<RoomAmenityResponse>> getByRoomType(@PathVariable Long roomTypeId) {
         return ResponseEntity.ok(roomAmenityService.getAmenitiesByRoomType(roomTypeId));

@@ -39,23 +39,24 @@ private RoomTypeResponse map(RoomType roomType) {
     
     return res;
 }
-    public List<RoomTypeResponse> getAll() {
+    @Transactional(readOnly = true)
+public List<RoomTypeResponse> getAll() {
         return roomTypeRepository.findByIsActiveTrue()
                 .stream().map(this::map).toList();
     }
-
+    @Transactional(readOnly = true)
     public RoomTypeResponse getById(Long id) throws NotFoundException {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Room type not found with id: " + id));
         return map(roomType);
     }
-
+    @Transactional(readOnly = false)
     public RoomTypeResponse create(CreateRoomTypeRequest request) {
         RoomType roomType = mapper.map(request, RoomType.class);
         roomType.setIsActive(true);
         return map(roomTypeRepository.save(roomType));
     }
-
+    @Transactional(readOnly = false)
     public RoomTypeResponse update(Long id, CreateRoomTypeRequest request) throws NotFoundException {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Room type not found with id: " + id));

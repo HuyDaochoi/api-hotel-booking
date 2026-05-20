@@ -21,7 +21,7 @@ public class RoomController {
     private final RoomService roomService;
     @GetMapping("/api/rooms")
     public ApiResponse<List<RoomResponse>> getAll() {
-        return ApiResponse.success(roomService.getAll());
+        return ApiResponse.success(roomService.getAllRoomsWithDetails());
     }
     @GetMapping("/api/rooms/available")
     public ApiResponse<List<RoomResponse>> getAvailable(

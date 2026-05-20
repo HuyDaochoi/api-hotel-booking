@@ -1,5 +1,5 @@
 package com.yo.apihotelbooking.schemas.domain;
-import com.yo.apihotelbooking.schemas.AuditableEntity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -7,9 +7,11 @@ import lombok.Setter;
 @Table(name = "room_amenities")
 @Getter
 @Setter
-public class RoomAmenity  extends AuditableEntity{
+public class RoomAmenity {
    
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @Column(name = "amenity_name", nullable = false)
     private String amenityName;
 
@@ -18,5 +20,6 @@ public class RoomAmenity  extends AuditableEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_type_id", nullable = false) 
+    @JsonBackReference
     private RoomType roomType;
 }

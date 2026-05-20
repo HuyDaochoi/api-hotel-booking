@@ -21,7 +21,7 @@ public class AdminBookingController {
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
     public ResponseEntity<Page<BookingResponse>> getAllBookings(
-            AdminBookingFilterRequest filter   // @ModelAttribute ẩn — Spring tự bind query params
+            AdminBookingFilterRequest filter  
     ) {
         return ResponseEntity.ok(adminBookingService.getAllBookings(filter));
     }
@@ -33,31 +33,19 @@ public class AdminBookingController {
         return ResponseEntity.ok(adminBookingService.confirmBooking(id));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // PUT /api/admin/bookings/{id}/check-in
-    // CONFIRMED → CHECKED_IN | Chỉ đúng ngày checkInDate | Role: STAFF, ADMIN
-    // ─────────────────────────────────────────────────────────────
     @PutMapping("/{id}/check-in")
     @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<BookingResponse> checkIn(@PathVariable Long id) {
         return ResponseEntity.ok(adminBookingService.checkIn(id));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // PUT /api/admin/bookings/{id}/check-out
-    // CHECKED_IN → CHECKED_OUT | Role: STAFF, ADMIN
-    // ─────────────────────────────────────────────────────────────
+
     @PutMapping("/{id}/check-out")
     @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<BookingResponse> checkOut(@PathVariable Long id) {
         return ResponseEntity.ok(adminBookingService.checkOut(id));
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // PUT /api/admin/bookings/{id}/cancel
-    // Hủy bất kỳ trạng thái (trừ CHECKED_OUT/CANCELLED) | Role: ADMIN
-    // Body: { "reason": "..." }
-    // ─────────────────────────────────────────────────────────────
     @PutMapping("/{id}/cancel")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BookingResponse> cancelBooking(
@@ -67,11 +55,6 @@ public class AdminBookingController {
         String reason = body.getOrDefault("reason", "Cancelled by admin");
         return ResponseEntity.ok(adminBookingService.cancelBooking(id, reason));
     }
-
-    // ─────────────────────────────────────────────────────────────
-    // PUT /api/admin/bookings/{id}/no-show
-    // CONFIRMED → NO_SHOW | Role: STAFF, ADMIN
-    // ─────────────────────────────────────────────────────────────
     @PutMapping("/{id}/no-show")
     @PreAuthorize("hasAnyRole('STAFF','ADMIN')")
     public ResponseEntity<BookingResponse> markNoShow(@PathVariable Long id) {

@@ -83,14 +83,14 @@ public class BookingService {
 
         return toResponse(saved);
     }
-
+    @Transactional(readOnly = true)
     public Page<BookingResponse> getMyBookings(User currentUser, int page, int size) {
         return bookingRepository
                 .findByUserId(currentUser.getId(),
                         PageRequest.of(page, size, Sort.by("createdAt").descending()))
                 .map(this::toResponse);
     }
-
+@Transactional(readOnly = true)
     public BookingResponse getBookingDetail(Long id) throws NotFoundException, BadRequestException {
         User currentUser = SecurityUtils.getCurrentUser();
         if (currentUser == null) {
