@@ -1,56 +1,75 @@
 package com.yo.apihotelbooking.services.impl;
 
-import org.springframework.stereotype.Service;
-import com.yo.apihotelbooking.schemas.domain.RoomType;
-import lombok.RequiredArgsConstructor;
-
-import com.yo.apihotelbooking.repository.RoomTypeRepository;
-import com.yo.apihotelbooking.services.RoomTypeService;
-
-import org.modelmapper.ModelMapper;
-import com.yo.apihotelbooking.dto.response.RoomTypeResponse;
-import com.yo.apihotelbooking.dto.request.CreateRoomTypeRequest;
 import com.yo.apihotelbooking.common.exception.NotFoundException;
+import com.yo.apihotelbooking.dto.request.CreateRoomTypeRequest;
+import com.yo.apihotelbooking.dto.response.RoomAmenityResponse;
+import com.yo.apihotelbooking.dto.response.RoomImageResponse;
+import com.yo.apihotelbooking.dto.response.RoomTypeResponse;
+import com.yo.apihotelbooking.repository.RoomTypeRepository;
+import com.yo.apihotelbooking.schemas.domain.RoomType;
+import com.yo.apihotelbooking.services.RoomTypeService;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class RoomTypeServiceImpl implements RoomTypeService {
+
     private final RoomTypeRepository roomTypeRepository;
     private final ModelMapper mapper;
 
-      private RoomTypeResponse map(RoomType roomType) {
-        return mapper.map(roomType, RoomTypeResponse.class);
+private RoomTypeResponse map(RoomType roomType) {
+    if (roomType == null) return null;
+    
+    RoomTypeResponse res = mapper.map(roomType, RoomTypeResponse.class);
+    
+    if (roomType.getImages() != null) {
+        res.setImages(roomType.getImages().stream()
+                .map(img -> mapper.map(img, RoomImageResponse.class)).toList());
     }
-    public List<RoomTypeResponse> getAll() {
-        List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
-        return roomTypes.stream().map(this::map).toList();
+    
+    if (roomType.getAmenities() != null) {
+        res.setAmenities(roomType.getAmenities().stream()
+                .map(amn -> mapper.map(amn, RoomAmenityResponse.class)).toList());
     }
-
+    
+    return res;
+}
+    @Transactional(readOnly = true)
+public List<RoomTypeResponse> getAll() {
+        return roomTypeRepository.findByIsActiveTrue()
+                .stream().map(this::map).toList();
+    }
+    @Transactional(readOnly = true)
     public RoomTypeResponse getById(Long id) throws NotFoundException {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Room type not found with id: " + id));
         return map(roomType);
     }
+    @Transactional(readOnly = false)
     public RoomTypeResponse create(CreateRoomTypeRequest request) {
         RoomType roomType = mapper.map(request, RoomType.class);
         roomType.setIsActive(true);
-        RoomType saved = roomTypeRepository.save(roomType);
-        return map(saved);
+        return map(roomTypeRepository.save(roomType));
     }
-
+    @Transactional(readOnly = false)
     public RoomTypeResponse update(Long id, CreateRoomTypeRequest request) throws NotFoundException {
         RoomType roomType = roomTypeRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Room type not found with id: " + id));
         mapper.map(request, roomType);
-        RoomType updated = roomTypeRepository.save(roomType);
-        return map(updated);
+        return map(roomTypeRepository.save(roomType));
     }
 
+    @Override
+    @Transactional
     public void delete(Long id) throws NotFoundException {
-        if (!roomTypeRepository.existsById(id)) {
-            throw new NotFoundException("Room type not found with id: " + id);
-        }
-        roomTypeRepository.deleteById(id);
+        RoomType roomType = roomTypeRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Room type not found with id: " + id));
+        roomType.setIsActive(false);
+        roomTypeRepository.save(roomType);
     }
 }

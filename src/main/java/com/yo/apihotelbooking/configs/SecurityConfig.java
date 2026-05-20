@@ -20,12 +20,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity   
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-    private final CustomUserDetailsService userDetailsService; 
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,31 +35,38 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-
-                // ── PUBLIC: không cần token ──────────────────────────────
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/rooms/available",
-                    "/api/room-types/**",
+                    "/api/rooms/*",              
+                    "/api/room-types",
+                    "/api/room-types/*",
                     "/api/pricing/estimate",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
 
-                // ── STAFF + ADMIN: đặt TRƯỚC rule /api/admin/** ──────────
-                // Vì Spring đọc từ trên xuống, rule cụ thể phải đứng trước rule tổng quát
                 .requestMatchers(
+                    "/api/admin/bookings",
+                    "/api/admin/bookings/*/confirm",
                     "/api/admin/bookings/*/check-in",
                     "/api/admin/bookings/*/check-out",
-                    "/api/admin/bookings/*/confirm",
-                    "/api/admin/bookings/*/no-show"
-                ).hasAnyRole("STAFF", "ADMIN")
+                    "/api/admin/bookings/*/no-show",
+                    "/api/admin/users",         
+                    "/api/admin/users/*"       
+                ).hasAnyRole("STAFF", "ADMIN")       
+                .requestMatchers(
+                    "/api/admin/**",
+                    "/api/v1/admin/**"
 
-                // ── ADMIN only ────────────────────────────────────────────
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                ).hasRole("ADMIN")
+                .requestMatchers(
+                    "/api/bookings/**",
+                    "/api/users/me",           
+                    "/api/users/me/password"      
+                ).authenticated()
 
-                // ── Còn lại phải đăng nhập ───────────────────────────────
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -67,12 +74,12 @@ public class SecurityConfig {
         return http.build();
     }
 
-@Bean
-public AuthenticationProvider authenticationProvider() {
-    DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService); 
-    provider.setPasswordEncoder(passwordEncoder());
-    return provider;
-}
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {

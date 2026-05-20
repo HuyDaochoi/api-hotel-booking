@@ -61,6 +61,7 @@ public class JwtService {
     // ── Kiểm tra token hợp lệ ───────────────────────────────────────
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String email = extractEmail(token);
+
         return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
@@ -68,7 +69,9 @@ public class JwtService {
     public boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
-
+public String extractJti(String token) {
+    return extractClaim(token, Claims::getId);
+}
     // ── Generic extract bất kỳ claim nào ────────────────────────────
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         Claims claims = Jwts.parser()

@@ -21,7 +21,7 @@ public class AuthController {
     private final AuthService authService;
 
     private static final String REFRESH_TOKEN_COOKIE = "refreshToken";
-    private static final int COOKIE_MAX_AGE = 7 * 24 * 60 * 60; // 7 ngày (giây)
+    private static final int COOKIE_MAX_AGE = 7 * 24 * 60 * 60;
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(
@@ -55,7 +55,6 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response) {
 
-        // Đọc refreshToken từ cookie (client không cần gửi gì trong body)
         String refreshToken = extractRefreshTokenFromCookie(request);
 
         if (refreshToken == null) {
@@ -64,7 +63,7 @@ public class AuthController {
 
         AuthResponse auth = authService.refreshToken(refreshToken);
 
-        // Set cookie mới (rotate token)
+       
         setRefreshTokenCookie(response, auth.getRefreshToken());
         auth.setRefreshToken(null);
 
@@ -82,7 +81,7 @@ public class AuthController {
             authService.logout(refreshToken);
         }
 
-        // Xóa cookie bằng cách set maxAge = 0
+    
         clearRefreshTokenCookie(response);
 
         return ResponseEntity.noContent().build();
@@ -92,9 +91,9 @@ public class AuthController {
 
     private void setRefreshTokenCookie(HttpServletResponse response, String tokenValue) {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, tokenValue);
-        cookie.setHttpOnly(true);                        // JS không đọc được
-        cookie.setSecure(false);                         // true khi deploy HTTPS
-        cookie.setPath("/api/auth");                     // chỉ gửi lên /api/auth/**
+        cookie.setHttpOnly(true);                  
+        cookie.setSecure(false);                  
+        cookie.setPath("/api/auth");                    
         cookie.setMaxAge(COOKIE_MAX_AGE);
         response.addCookie(cookie);
     }

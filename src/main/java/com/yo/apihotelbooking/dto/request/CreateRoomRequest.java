@@ -1,8 +1,6 @@
 package com.yo.apihotelbooking.dto.request;
 import jakarta.validation.constraints.NotNull;
 
-import com.yo.apihotelbooking.schemas.domain.RoomType;
-
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;

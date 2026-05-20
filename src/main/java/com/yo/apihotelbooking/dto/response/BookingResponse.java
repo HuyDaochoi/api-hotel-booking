@@ -1,16 +1,18 @@
 package com.yo.apihotelbooking.dto.response;
+
 import com.yo.apihotelbooking.schemas.enums.BookingStatus;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-
 public class BookingResponse {
 
     private Long id;
@@ -30,4 +32,6 @@ public class BookingResponse {
     private String specialRequests;
 
     private LocalDateTime createdAt;
+
+    private List<BookingStatusHistoryResponse> statusHistories;
 }

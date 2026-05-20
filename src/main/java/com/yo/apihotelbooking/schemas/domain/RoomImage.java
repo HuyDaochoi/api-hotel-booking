@@ -1,22 +1,17 @@
 package com.yo.apihotelbooking.schemas.domain;
+
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.yo.apihotelbooking.schemas.AuditableEntity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Data;
 
 @Entity
-
-@Getter @Setter 
-@Data
 @Table(name = "room_images")
-public class RoomImages extends AuditableEntity {
-
-    @ManyToOne
-    @JoinColumn(name = "room_type_id", nullable = false)
-    private RoomType roomType;
-
+@Data
+public class RoomImage extends AuditableEntity {
+   
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
@@ -27,4 +22,9 @@ public class RoomImages extends AuditableEntity {
 
     @Column(name = "sort_order")
     private Integer sortOrder = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "room_type_id", nullable = false) 
+    @JsonBackReference
+    private RoomType roomType; 
 }

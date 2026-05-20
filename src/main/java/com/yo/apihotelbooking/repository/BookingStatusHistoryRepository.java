@@ -5,5 +5,5 @@ import java.util.List;
 public interface BookingStatusHistoryRepository extends JpaRepository<BookingStatusHistory, Long> {
 
     List<BookingStatusHistory> findByBookingIdOrderByChangedAtDesc(Long bookingId);
-
+    List<BookingStatusHistory> findByBookingIdOrderByChangedAtAsc(Long bookingId);
 }

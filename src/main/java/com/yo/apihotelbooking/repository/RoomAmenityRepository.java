@@ -1,11 +1,11 @@
 package com.yo.apihotelbooking.repository;
-import com.yo.apihotelbooking.schemas.domain.RoomAmenities;
+import com.yo.apihotelbooking.schemas.domain.RoomAmenity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface RoomAmenityRepository extends JpaRepository<RoomAmenities, Long> {
+public interface RoomAmenityRepository extends JpaRepository<RoomAmenity, Long> {
 
-    List<RoomAmenities> findByRoomTypeId(Long roomTypeId);
+    List<RoomAmenity> findByRoomTypeId(Long roomTypeId);
 
 }
