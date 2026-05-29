@@ -4,6 +4,6 @@ public enum BookingPaymentStatus {
     UNPAID,
     PARTIAL,
     PAID,
-    PARTIAL_REFUNDED,
+
     REFUNDED
 }

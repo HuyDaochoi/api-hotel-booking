@@ -48,39 +48,31 @@ public class BookingService {
                 .filter(p -> p.getStatus() == PaymentStatus.SUCCESS)
                 .toList();
 
-        // Tổng tiền khách thực tế đã thanh toán thành công
         BigDecimal totalPaid = successPayments.stream()
                 .filter(p -> p.getPaymentType() == PaymentType.PAYMENT)
                 .map(p -> p.getAmountPaid() != null ? p.getAmountPaid() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Tổng tiền hệ thống đã hoàn trả thành công (nếu có)
         BigDecimal totalRefunded = successPayments.stream()
                 .filter(p -> p.getPaymentType() == PaymentType.REFUND)
                 .map(p -> p.getAmountPaid() != null ? p.getAmountPaid() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Số tiền thực tế sau khi đối soát đối trừ tiền hoàn
         BigDecimal netAmount = totalPaid.subtract(totalRefunded);
-
         BigDecimal targetTotal = booking.getTotalAmount() != null ? booking.getTotalAmount() : BigDecimal.ZERO;
 
         if (booking.getStatus() == BookingStatus.CANCELLED) {
             if (netAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                booking.setBookingPaymentStatus(BookingPaymentStatus.UNPAID);
-            } else if (totalRefunded.compareTo(BigDecimal.ZERO) > 0 && netAmount.compareTo(BigDecimal.ZERO) > 0) {
-                booking.setBookingPaymentStatus(BookingPaymentStatus.PARTIAL_REFUNDED);
-            } else {
                 booking.setBookingPaymentStatus(BookingPaymentStatus.REFUNDED);
+            } else {
+                booking.setBookingPaymentStatus(BookingPaymentStatus.PARTIAL);
             }
         } else {
-            // Luồng cập nhật trạng thái khi đơn phòng đang hoạt động bình thường
             if (netAmount.compareTo(BigDecimal.ZERO) == 0) {
                 booking.setBookingPaymentStatus(BookingPaymentStatus.UNPAID);
             } else if (netAmount.compareTo(targetTotal) >= 0) {
                 booking.setBookingPaymentStatus(BookingPaymentStatus.PAID);
             } else {
-                // Đã cọc thành công số tiền cọc (ví dụ 30%) nhưng chưa thanh toán hết toàn bộ đơn 100%
                 booking.setBookingPaymentStatus(BookingPaymentStatus.PARTIAL);
             }
         }
@@ -217,7 +209,7 @@ public class BookingService {
 
         PricingEstimateResponse pricing = pricingService.estimatePrice(room.getId(), request.getCheckInDate(), request.getCheckOutDate());
         BigDecimal totalAmount = pricing.getTotalAmount();
-        BigDecimal requiredAmount = totalAmount; // Mặc định thu 100% tổng tiền nếu rule không cấu hình cọc
+        BigDecimal requiredAmount = totalAmount;
 
         if (rule != null) {
             long nights = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
@@ -228,7 +220,6 @@ public class BookingService {
                 throw new BadRequestException("Cần đặt phòng trước ít nhất " + rule.getMinDaysAdvance() + " ngày");
             }
             if (rule.getDepositPercentage() != null && rule.getDepositPercentage().compareTo(BigDecimal.ZERO) > 0) {
-                // Tính toán chính xác số tiền cọc dựa trên phần trăm cấu hình (Ví dụ: 30%)
                 requiredAmount = totalAmount.multiply(rule.getDepositPercentage()).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
             }
         }
