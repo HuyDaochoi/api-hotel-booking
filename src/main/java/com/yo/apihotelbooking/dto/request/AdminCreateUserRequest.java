@@ -1,6 +1,5 @@
 package com.yo.apihotelbooking.dto.request;
 
-import com.yo.apihotelbooking.schemas.enums.UserRole;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -27,7 +26,6 @@ public class AdminCreateUserRequest {
              message = "Số điện thoại không hợp lệ")
     private String phone;
 
-    // Admin có thể tạo CUSTOMER, STAFF, ADMIN
     @NotNull(message = "Role không được để trống")
-    private UserRole role = UserRole.CUSTOMER;
+    private String role ;
 }

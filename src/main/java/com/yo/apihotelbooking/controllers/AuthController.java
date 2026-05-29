@@ -29,8 +29,6 @@ public class AuthController {
             HttpServletResponse response) {
 
         AuthResponse auth = authService.register(request);
-
-        // Set refreshToken vào HttpOnly Cookie, xóa khỏi body
         setRefreshTokenCookie(response, auth.getRefreshToken());
         auth.setRefreshToken(null);
 

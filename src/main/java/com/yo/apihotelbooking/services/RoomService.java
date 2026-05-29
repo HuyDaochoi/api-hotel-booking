@@ -3,6 +3,7 @@ package com.yo.apihotelbooking.services;
 import java.time.LocalDate;
 
 import com.yo.apihotelbooking.dto.request.CreateRoomRequest;
+import com.yo.apihotelbooking.dto.request.RoomSearchRequest;
 import com.yo.apihotelbooking.dto.response.RoomResponse;
 import com.yo.apihotelbooking.common.exception.NotFoundException;
 import java.util.List;
@@ -19,4 +20,5 @@ public interface RoomService {
     RoomResponse create(CreateRoomRequest request) throws NotFoundException;
     RoomResponse update(Long id, CreateRoomRequest request) throws NotFoundException;
     void delete(Long id) throws NotFoundException;
+    List<RoomResponse> searchRooms(RoomSearchRequest req);
 }

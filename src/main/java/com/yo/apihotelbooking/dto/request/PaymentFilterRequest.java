@@ -6,6 +6,7 @@ import com.yo.apihotelbooking.schemas.enums.PaymentType;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -15,6 +16,7 @@ public class PaymentFilterRequest {
     private PaymentMethod paymentMethod;
     private PaymentStatus status;
 
+    private BigDecimal amountPaid = BigDecimal.ZERO;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate fromDate;
 

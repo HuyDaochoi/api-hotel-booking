@@ -13,6 +13,8 @@ import com.yo.apihotelbooking.repository.RoomTypeRepository;
 import com.yo.apihotelbooking.common.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -25,6 +27,7 @@ public class PricingService {
     private final PricingRuleRepository pricingRuleRepository;
     private final RoomRepository roomRepository;
     private final RoomTypeRepository roomTypeRepository;
+    @Transactional
     public PricingEstimateResponse estimatePrice(Long roomId, LocalDate checkIn, LocalDate checkOut) throws NotFoundException {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy phòng với ID: " + roomId));
@@ -70,24 +73,26 @@ public class PricingService {
         }
         return base;
     }
+    @Transactional(readOnly = true)
    public List<PricingRuleResponse> getAllRules() {
         return pricingRuleRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .toList();
     }
+    @Transactional
     public PricingRuleResponse createRule(PricingRuleRequest request) throws NotFoundException, BadRequestException  {
         PricingRule rule = new PricingRule();
         mapRequestToEntity(request, rule);
         return mapToResponse(pricingRuleRepository.save(rule));
     }
-
+    @Transactional
     public PricingRuleResponse updateRule(Long id, PricingRuleRequest request) throws NotFoundException, BadRequestException {
         PricingRule rule = pricingRuleRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy quy tắc giá ID: " + id));
         mapRequestToEntity(request, rule);
         return mapToResponse(pricingRuleRepository.save(rule));
     }
-
+    @Transactional
     public void deleteRule(Long id) {
         pricingRuleRepository.deleteById(id);
     }
@@ -104,8 +109,6 @@ public class PricingService {
             throw new BadRequestException(
                     "Phải có ít nhất một trong hai: priceModifier hoặc pricePercent");
         }
- 
-        // SEASONAL / SPECIAL_EVENT / DISCOUNT bắt buộc startDate ≤ endDate
         if (request.getRuleType() != null) {
             boolean needsDateRange = switch (request.getRuleType()) {
                 case SEASONAL, SPECIAL_EVENT, DISCOUNT -> true;
@@ -141,7 +144,6 @@ public class PricingService {
             entity.setRoomType(null);
         }
     }
-    
     private PricingRuleResponse mapToResponse(PricingRule entity) {
         return new PricingRuleResponse(
             entity.getRuleName(),

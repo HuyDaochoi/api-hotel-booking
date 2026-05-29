@@ -9,8 +9,9 @@ import com.yo.apihotelbooking.dto.request.ChangePasswordRequest;
 import com.yo.apihotelbooking.dto.request.UpdateProfileRequest;
 import com.yo.apihotelbooking.dto.response.UserResponse;
 import com.yo.apihotelbooking.repository.UserRepository;
+import com.yo.apihotelbooking.repository.RoleRepository;
 import com.yo.apihotelbooking.schemas.domain.User;
-import com.yo.apihotelbooking.schemas.enums.UserRole;
+import com.yo.apihotelbooking.schemas.domain.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,13 +27,13 @@ public class UserService {
 
     private final UserRepository  userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository  roleRepository; 
 
     public UserResponse getMyProfile() {
         User user = requireCurrentUser();
         return toResponse(user);
     }
 
-    // PUT /api/users/me — cập nhật fullName + phone
     @Transactional
     public UserResponse updateMyProfile(UpdateProfileRequest request) throws BadRequestException {
         User user = requireCurrentUser();
@@ -43,22 +44,18 @@ public class UserService {
         return toResponse(userRepository.save(user));
     }
 
-    // PUT /api/users/me/password — đổi mật khẩu
     @Transactional
     public void changeMyPassword(ChangePasswordRequest request) throws BadRequestException {
         User user = requireCurrentUser();
 
-        // Kiểm tra mật khẩu hiện tại
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadRequestException("Mật khẩu hiện tại không đúng");
         }
 
-       
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             throw new BadRequestException("Mật khẩu mới và xác nhận mật khẩu không khớp");
         }
 
-      
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new BadRequestException("Mật khẩu mới không được trùng mật khẩu cũ");
         }
@@ -67,9 +64,10 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public Page<UserResponse> getAllUsers(UserRole role, Boolean isActive,
+    public Page<UserResponse> getAllUsers(String role, Boolean isActive,
                                           String keyword, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        
         return userRepository.findAllWithFilter(role, isActive, keyword, pageable)
                              .map(this::toResponse);
     }
@@ -95,8 +93,13 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        user.setRole(request.getRole());
         user.setIsActive(true);
+
+        if (request.getRole() != null) {
+            Role targetRole = roleRepository.findByName(request.getRole())
+                    .orElseThrow(() -> new BadRequestException("Không tìm thấy quyền: " + request.getRole()));
+            user.getRoles().add(targetRole);
+        }
 
         return toResponse(userRepository.save(user));
     }
@@ -108,19 +111,23 @@ public class UserService {
 
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        user.setRole(request.getRole());
         user.setIsActive(request.getIsActive());
+
+        if (request.getRole() != null) {
+            Role targetRole = roleRepository.findByName(request.getRole())
+                    .orElseThrow(() -> new NotFoundException("Không tìm thấy quyền: " + request.getRole()));
+            user.getRoles().clear();
+            user.getRoles().add(targetRole);
+        }
 
         return toResponse(userRepository.save(user));
     }
 
-    // PUT /api/admin/users/{id}/lock — khóa tài khoản (isActive=false)
     @Transactional
     public UserResponse lockUser(Long id) throws NotFoundException, BadRequestException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng: " + id));
 
-        // Không cho tự khóa tài khoản của mình
         User currentUser = requireCurrentUser();
         if (currentUser.getId().equals(id)) {
             throw new BadRequestException("Không thể khóa tài khoản của chính mình");
@@ -130,7 +137,6 @@ public class UserService {
         return toResponse(userRepository.save(user));
     }
 
-    // PUT /api/admin/users/{id}/unlock — mở khóa tài khoản (isActive=true)
     @Transactional
     public UserResponse unlockUser(Long id) throws NotFoundException {
         User user = userRepository.findById(id)
@@ -140,7 +146,6 @@ public class UserService {
         return toResponse(userRepository.save(user));
     }
 
-    // PUT /api/admin/users/{id}/reset-password — admin reset mật khẩu cho user
     @Transactional
     public void resetPassword(Long id, String newPassword) throws NotFoundException, BadRequestException {
         if (newPassword == null || newPassword.length() < 8) {
@@ -154,17 +159,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // STAFF — chỉ xem danh sách và chi tiết, không sửa
-    // ═══════════════════════════════════════════════════════════
-
-    // Staff dùng chung getAllUsers() và getUserById() ở trên
-    // Controller sẽ phân quyền đúng cho từng endpoint
-
-    // ═══════════════════════════════════════════════════════════
-    // Helpers
-    // ═══════════════════════════════════════════════════════════
-
     private User requireCurrentUser() {
         User user = SecurityUtils.getCurrentUser();
         if (user == null) throw new RuntimeException("Bạn chưa đăng nhập");
@@ -175,11 +169,15 @@ public class UserService {
         UserResponse res = new UserResponse();
         res.setId(user.getId());
         res.setEmail(user.getEmail());
-        res.setUsername(user.getRealUser());  // getRealUser() trả username thực, không phải email
+        res.setUsername(user.getRealUser());  
         res.setFullName(user.getFullName());
         res.setPhone(user.getPhone());
-        res.setRole(user.getRole());
         res.setIsActive(user.getIsActive());
+        
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            res.setRole(user.getRoles().iterator().next().getName());
+        }
+        
         return res;
     }
 }

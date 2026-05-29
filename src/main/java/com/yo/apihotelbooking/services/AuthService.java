@@ -3,11 +3,11 @@ package com.yo.apihotelbooking.services;
 import com.yo.apihotelbooking.dto.request.LoginRequest;
 import com.yo.apihotelbooking.dto.request.RegisterRequest;
 import com.yo.apihotelbooking.dto.response.AuthResponse;
-import com.yo.apihotelbooking.dto.response.UserResponse;
 import com.yo.apihotelbooking.schemas.domain.RefreshToken;
 import com.yo.apihotelbooking.schemas.domain.User;
-import com.yo.apihotelbooking.schemas.enums.UserRole;
+import com.yo.apihotelbooking.schemas.domain.Role;
 import com.yo.apihotelbooking.repository.RefreshTokenRepository;
+import com.yo.apihotelbooking.repository.RoleRepository;
 import com.yo.apihotelbooking.repository.UserRepository;
 import com.yo.apihotelbooking.services.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-
+import java.util.stream.Collectors;
+import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -44,25 +46,21 @@ public class AuthService {
             throw new RuntimeException("USERNAME_ALREADY_EXISTS");
         }
 
-        User user = new User();
+      User user = new User();
         user.setEmail(request.getEmail());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        user.setRole(UserRole.CUSTOMER);
         user.setIsActive(true);
+
+       Role defaultRole = roleRepository.findByName("CUSTOMER")
+                .orElseThrow(() -> new RuntimeException("LỖI: Không tìm thấy quyền dữ liệu CUSTOMER trong hệ thống DB"));
+        user.getRoles().add(defaultRole);
 
         userRepository.save(user);
 
-        String accessToken  = jwtService.generateAccessToken(user);
-        String refreshToken = saveRefreshToken(user);
-
-        AuthResponse response = new AuthResponse();
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
-        response.setUser(toUserResponse(user));
-        return response;
+        return createAuthResponse(user);
     }
 
     @Transactional
@@ -80,14 +78,7 @@ public class AuthService {
 
         refreshTokenRepository.revokeAllByUserId(user.getId());
 
-        String accessToken  = jwtService.generateAccessToken(user);
-        String refreshToken = saveRefreshToken(user);
-
-        AuthResponse response = new AuthResponse();
-        response.setAccessToken(accessToken);
-        response.setRefreshToken(refreshToken);
-        response.setUser(toUserResponse(user));
-        return response;
+        return createAuthResponse(user);
     }
 
     @Transactional
@@ -110,17 +101,10 @@ public class AuthService {
         savedToken.setRevoked(true);
         refreshTokenRepository.save(savedToken);
 
-        String newAccessToken  = jwtService.generateAccessToken(user);
-        String newRefreshToken = saveRefreshToken(user);
-
-        AuthResponse response = new AuthResponse();
-        response.setAccessToken(newAccessToken);
-        response.setRefreshToken(newRefreshToken);
-        response.setUser(toUserResponse(user));
-        return response;
+        return createAuthResponse(user);
     }
 
-    @Transactional
+@Transactional
     public void logout(String refreshTokenValue) {
 
         RefreshToken savedToken = refreshTokenRepository
@@ -131,18 +115,21 @@ public class AuthService {
         refreshTokenRepository.save(savedToken);
     }
 
-    // Map thủ công để tránh ModelMapper nhầm getUsername() của UserDetails
-    private UserResponse toUserResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setUsername(user.getRealUser()); 
-        response.setFullName(user.getFullName());
-        response.setPhone(user.getPhone());
-        response.setRole(user.getRole());
-        response.setIsActive(user.getIsActive());
+private AuthResponse createAuthResponse(User user) {
+        String accessToken  = jwtService.generateAccessToken(user);
+        String refreshToken = saveRefreshToken(user);
+        Set<String> roleNames = user.getRoles().stream()
+                .map(Role::getName) 
+                .collect(Collectors.toSet());
+        AuthResponse response = new AuthResponse();
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
+        response.setUserId(user.getId());
+        response.setRoles(roleNames);
+
         return response;
     }
+
 
     private String saveRefreshToken(User user) {
         String tokenValue = jwtService.generateRefreshToken(user);

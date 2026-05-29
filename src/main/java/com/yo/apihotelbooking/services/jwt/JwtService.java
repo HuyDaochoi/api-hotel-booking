@@ -8,11 +8,12 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-
+import com.yo.apihotelbooking.schemas.domain.Role;
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.function.Function;
-
+import java.util.stream.Collectors;
+import java.util.List;
 @Service
 public class JwtService {
 
@@ -27,52 +28,48 @@ public class JwtService {
 
     // ── Tạo Access Token ────────────────────────────────────────────
     public String generateAccessToken(User user) {
+        List<String> roleNames = user.getRoles().stream()
+                .map(Role::getName)
+                .collect(Collectors.toList());
         return Jwts.builder()
-                .subject(user.getEmail())
-                .claim("role", user.getRole().name())
-                .claim("userId", user.getId())
+                .subject(String.valueOf(user.getId()))
+                .claim("roles", roleNames)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(getSignKey())
                 .compact();
     }
 
-    // ── Tạo Refresh Token ────────────────────────────────────────────
-    // Refresh token chỉ chứa email, không cần role
+
     public String generateRefreshToken(User user) {
-        return Jwts.builder()
-                .subject(user.getEmail())
+       return Jwts.builder()
+                .subject(String.valueOf(user.getId()))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
                 .signWith(getSignKey())
                 .compact();
     }
-
-    // ── Extract email từ token ───────────────────────────────────────
+    public String extractUserId(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // ── Extract role từ token ────────────────────────────────────────
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
+ public boolean isTokenValid(String token, UserDetails userDetails) {
+        if (userDetails instanceof User user) {
+            final String userId = extractUserId(token);
+            return userId.equals(String.valueOf(user.getId())) && !isTokenExpired(token);
+        }
+        return false;
     }
 
-    // ── Kiểm tra token hợp lệ ───────────────────────────────────────
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String email = extractEmail(token);
-
-        return email.equals(userDetails.getUsername()) && !isTokenExpired(token);
-    }
-
-    // ── Kiểm tra token hết hạn ──────────────────────────────────────
     public boolean isTokenExpired(String token) {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 public String extractJti(String token) {
     return extractClaim(token, Claims::getId);
 }
-    // ── Generic extract bất kỳ claim nào ────────────────────────────
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         Claims claims = Jwts.parser()
                 .verifyWith(getSignKey())
@@ -82,7 +79,6 @@ public String extractJti(String token) {
         return claimsResolver.apply(claims);
     }
 
-    // ── Tạo SecretKey từ chuỗi base64 trong config ──────────────────
     private SecretKey getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);

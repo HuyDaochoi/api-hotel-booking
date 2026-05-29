@@ -1,16 +1,18 @@
 package com.yo.apihotelbooking.schemas.domain;
+
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import lombok.Data;
 import jakarta.persistence.*;
 import com.yo.apihotelbooking.schemas.AuditableEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import com.yo.apihotelbooking.schemas.enums.UserRole;
-import lombok.Data;
+
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -18,10 +20,13 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class User extends AuditableEntity implements UserDetails {
+
     @Column(nullable = false, unique = true, length = 255)
     private String email;
+
     @Column(nullable = false, unique = true, length = 100)
-private String username;
+    private String username;
+
     @Column(nullable = false, length = 255)
     private String password;
 
@@ -31,29 +36,39 @@ private String username;
     @Column(length = 20)
     private String phone;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private UserRole role = UserRole.CUSTOMER;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-@Override
-   public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .collect(Collectors.toList());
     }
 
     @Override
     public String getUsername() {
         return email; 
     }
+
     public String getRealUser() {
+    
         return username; 
     }
-@Override
+
+    @Override
     public String getPassword() {
         return password;
     }
+
     @Override
     public boolean isAccountNonExpired() { return true; }
 
@@ -65,6 +80,4 @@ private String username;
 
     @Override
     public boolean isEnabled() { return isActive; }
-
-
 }

@@ -1,7 +1,14 @@
 package com.yo.apihotelbooking.repository;
+import com.yo.apihotelbooking.schemas.domain.Booking;
 import com.yo.apihotelbooking.schemas.domain.Room;
+import com.yo.apihotelbooking.schemas.domain.RoomType;
+
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -22,4 +29,7 @@ List<Room> findAllWithDetails();
           )
     """, nativeQuery = true)
     List<Room> findAvailableRooms(LocalDate checkIn, LocalDate checkOut);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Room r WHERE r.id = :id")
+    Optional<Room> findByIdWithLock(@Param("id") Long id);
 }

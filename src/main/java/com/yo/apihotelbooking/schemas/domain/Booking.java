@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.yo.apihotelbooking.schemas.AuditableEntity;
+import com.yo.apihotelbooking.schemas.enums.BookingPaymentStatus;
 import com.yo.apihotelbooking.schemas.enums.BookingStatus;
 
 import jakarta.persistence.Column;
@@ -39,7 +40,11 @@ public class Booking extends AuditableEntity {
 
     @Enumerated(EnumType.STRING)
     private BookingStatus status = BookingStatus.PENDING;
-
+    @Column(name="deposit_amount")
+    private BigDecimal depositAmount;
+    @Enumerated(EnumType.STRING)
+    @Column(name="payment_status",insertable = true, updatable = true)
+    private BookingPaymentStatus bookingPaymentStatus = BookingPaymentStatus.UNPAID; ;
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
 
