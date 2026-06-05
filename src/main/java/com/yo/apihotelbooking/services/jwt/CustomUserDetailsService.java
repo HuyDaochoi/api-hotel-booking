@@ -19,4 +19,10 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Không tìm thấy user với email: " + email));
     }
+    public UserDetails loadUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "Không tìm thấy dữ liệu user với ID: " + id));
+    }
+
 }

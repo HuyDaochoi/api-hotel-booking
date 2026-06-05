@@ -29,5 +29,5 @@ public class BookingStatusHistory extends AuditableEntity {
     private String note;
 
     @Column(name = "changed_at")
-    private LocalDateTime changedAt;
+    private LocalDateTime changedAt = LocalDateTime.now();;
 }

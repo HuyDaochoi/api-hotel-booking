@@ -2,12 +2,14 @@ package com.yo.apihotelbooking.controllers;
 
 import com.yo.apihotelbooking.common.ApiResponse;
 import com.yo.apihotelbooking.dto.request.CreateRoomRequest;
+import com.yo.apihotelbooking.dto.request.RoomSearchRequest;
 import com.yo.apihotelbooking.dto.response.RoomResponse;
 import com.yo.apihotelbooking.services.RoomService;
 import com.yo.apihotelbooking.common.exception.NotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,11 @@ import java.util.List;
 public class RoomController {
 
     private final RoomService roomService;
+    @PostMapping("/api/search")
+    public ResponseEntity<List<RoomResponse>> searchRooms(@RequestBody RoomSearchRequest request) {
+        List<RoomResponse> results = roomService.searchRooms(request);
+        return ResponseEntity.ok(results);
+    }
     @GetMapping("/api/rooms")
     public ApiResponse<List<RoomResponse>> getAll() {
         return ApiResponse.success(roomService.getAllRoomsWithDetails());

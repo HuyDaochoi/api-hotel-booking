@@ -24,7 +24,8 @@ public class Payment extends AuditableEntity {
     
     @Column(name = "amount", precision = 12, scale = 2)
     private BigDecimal amount;
-
+    @Column(name = "amount_paid")
+    private BigDecimal amountPaid = BigDecimal.ZERO;
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
 

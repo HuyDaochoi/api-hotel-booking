@@ -25,6 +25,6 @@ public class RoomTypeResponse {
 
     private Boolean isActive = true;
     private List<RoomImageResponse> images;
-    private List<RoomAmenityResponse> amenities;
+    private List<AmenitiesResponse> amenities;
 
 }

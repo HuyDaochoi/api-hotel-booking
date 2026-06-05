@@ -22,11 +22,9 @@ public class AdminBookingFilterRequest {
     private Long roomId;
     private Long userId;
 
-    // Phân trang
     private int page    = 0;
     private int size    = 20;
 
-    // Sắp xếp
     private String sortBy  = "createdAt";
     private String sortDir = "desc";
 }

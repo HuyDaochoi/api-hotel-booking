@@ -1,6 +1,5 @@
 package com.yo.apihotelbooking.dto.request;
 
-import com.yo.apihotelbooking.schemas.enums.UserRole;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -16,7 +15,7 @@ public class AdminUpdateUserRequest {
     private String phone;
 
     @NotNull(message = "Role không được để trống")
-    private UserRole role;
+    private String role;
 
     @NotNull(message = "isActive không được để trống")
     private Boolean isActive;

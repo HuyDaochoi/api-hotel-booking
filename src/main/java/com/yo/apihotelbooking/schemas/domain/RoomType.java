@@ -5,8 +5,7 @@ import java.math.BigDecimal;
 import com.yo.apihotelbooking.schemas.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.Getter;
-import lombok.Setter;
+
 import com.yo.apihotelbooking.schemas.domain.RoomImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,11 @@ public class RoomType extends AuditableEntity {
     @Fetch(FetchMode.SUBSELECT)
     private List<RoomImage> images = new ArrayList<>();
 
-    @OneToMany(mappedBy = "roomType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @Fetch(FetchMode.SUBSELECT)
-    private List<RoomAmenity> amenities = new ArrayList<>();
+@ManyToMany(fetch = FetchType.LAZY)
+@JoinTable(
+    name = "room_type_amenities", 
+    joinColumns = @JoinColumn(name = "room_type_id"),
+    inverseJoinColumns = @JoinColumn(name = "amenity_id")
+)
+private List<Amenities> amenities = new ArrayList<>();
 }

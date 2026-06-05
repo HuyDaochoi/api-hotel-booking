@@ -12,26 +12,40 @@ import lombok.Setter;
 @Entity
 @Table(name = "pricing_rules")
 @Getter @Setter
-public class PricingRule  extends AuditableEntity {
+public class PricingRule extends AuditableEntity {
+    
     @ManyToOne
     @JoinColumn(name = "room_type_id")
     private RoomType roomType;
 
     @Column(name = "rule_name")
     private String ruleName;
+
+    @Column(name = "day_of_week")
     private Integer dayOfWeek;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "rule_type") 
     private PricingRuleType ruleType;
 
+    @Column(name = "start_date")
     private LocalDate startDate;
+    
+    @Column(name = "end_date")
     private LocalDate endDate;
-    @Column(precision = 12, scale = 2)   
+    
+    @Column(name = "price_modifier", precision = 12, scale = 2)   
     private BigDecimal priceModifier;
-    @Column(precision = 5, scale = 2)
+    
+    @Column(name = "price_percent", precision = 5, scale = 2)
     private BigDecimal pricePercent;
     
+    @Column(name = "min_nights")
     private Integer minNights;
+    
+    @Column(name = "priority")
     private Integer priority;
 
-    private Boolean isActive;
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 }

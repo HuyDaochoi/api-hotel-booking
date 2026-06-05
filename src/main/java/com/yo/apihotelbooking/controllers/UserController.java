@@ -6,7 +6,6 @@ import com.yo.apihotelbooking.dto.request.AdminUpdateUserRequest;
 import com.yo.apihotelbooking.dto.request.ChangePasswordRequest;
 import com.yo.apihotelbooking.dto.request.UpdateProfileRequest;
 import com.yo.apihotelbooking.dto.response.UserResponse;
-import com.yo.apihotelbooking.schemas.enums.UserRole;
 import com.yo.apihotelbooking.services.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +20,13 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-
+    
     @GetMapping("/api/users/me")
     public ApiResponse<UserResponse> getMyProfile() {
         return ApiResponse.success(userService.getMyProfile());
     }
 
-    // PUT /api/users/me — cập nhật fullName + phone
+    
     @PutMapping("/api/users/me")
     public ApiResponse<UserResponse> updateMyProfile(
             @RequestBody @Valid UpdateProfileRequest request) throws Exception {
@@ -46,7 +45,7 @@ public class UserController {
     @GetMapping("/api/admin/users")
     @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public ApiResponse<Page<UserResponse>> getAllUsers(
-            @RequestParam(required = false) UserRole role,
+            @RequestParam(required = false) String role,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,

@@ -30,7 +30,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        // 1. Đọc header Authorization
         final String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -41,30 +40,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String jwt = authHeader.substring(7);
 
         try {
-            final String email = jwtService.extractEmail(jwt);
-
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                // 6. Load user từ DB
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            final String userIdStr = jwtService.extractUserId(jwt);
+            if (userIdStr != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Long userId = Long.parseLong(userIdStr);
+                UserDetails userDetails = userDetailsService.loadUserById(userId);
 
                 if (jwtService.isTokenValid(jwt, userDetails)) {
-
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
                                     userDetails.getAuthorities()
                             );
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request));
-
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-
             filterChain.doFilter(request, response);
-
+  
         } catch (ExpiredJwtException e) {
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED,
                     "TOKEN_EXPIRED", "Token đã hết hạn, vui lòng đăng nhập lại");

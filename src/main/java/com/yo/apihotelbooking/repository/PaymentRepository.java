@@ -19,10 +19,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByBookingId(Long bookingId);
 
-    /**
-     * Truy vấn lọc động nâng cao xử lý trực tiếp dưới DB.
-     * Tự động bỏ qua các điều kiện tìm kiếm nếu tham số truyền vào nhận giá trị NULL.
-     */
     @Query("SELECT p FROM Payment p WHERE " +
            "(:bookingId IS NULL OR p.booking.id = :bookingId) AND " +
            "(:paymentType IS NULL OR p.paymentType = :paymentType) AND " +
