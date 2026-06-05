@@ -9,7 +9,7 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Long> {
 
     List<RoomType> findByIsActiveTrue();
 @Query("SELECT DISTINCT rt FROM RoomType rt " +
-       "JOIN rt.amenities a " +
+       "LEFT JOIN rt.amenities a " +
        "WHERE (:guestCount IS NULL OR rt.maxCapacity >= :guestCount) " +
        "AND (:amenityIds IS NULL OR a.id IN :amenityIds)")
 List<RoomType> searchRoomTypes(

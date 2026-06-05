@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.yo.apihotelbooking.schemas.domain.Amenities;
 import com.yo.apihotelbooking.schemas.domain.Room;
 import com.yo.apihotelbooking.schemas.domain.RoomType;
 import com.yo.apihotelbooking.services.RoomService;
@@ -144,6 +145,18 @@ public class RoomServiceImpl implements RoomService {
                 req.getAmenityIds()
         );
         if (matchedTypes.isEmpty()) return List.of();
+
+        // Lọc thêm bằng Java để đảm bảo phòng phải có đủ (AND) tất cả các tiện ích
+        if (req.getAmenityIds() != null && !req.getAmenityIds().isEmpty()) {
+            matchedTypes = matchedTypes.stream()
+                .filter(rt -> {
+                    List<Long> rtAmenityIds = rt.getAmenities().stream()
+                                                .map(Amenities::getId).toList();
+                    return rtAmenityIds.containsAll(req.getAmenityIds());
+                })
+                .toList();
+            if (matchedTypes.isEmpty()) return List.of();
+        }
 
         List<Long> matchedTypeIds = matchedTypes.stream().map(RoomType::getId).toList();
         List<Room> rooms = (req.getCheckIn() != null && req.getCheckOut() != null)
