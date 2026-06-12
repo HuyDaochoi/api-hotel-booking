@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +39,9 @@ public class BookingService {
     private final BookingRuleRepository bookingRuleRepository;
     private final CancellationPolicyRepository cancellationPolicyRepository;
     private final EntityManager entityManager;
+
+    @Value("${app.booking.default-check-in-hour:14}")
+    private int defaultCheckInHour;
 
     @Transactional(rollbackFor = Exception.class)
     public void recalculatePaymentStatus(Long bookingId) {
@@ -128,7 +132,8 @@ public class BookingService {
         booking.setCancelledAt(LocalDateTime.now());
         booking.setCancellationReason("Hủy bởi khách hàng");
 
-        LocalDateTime checkInDateTime = booking.getCheckInDate().atTime(14, 0);
+        // Sử dụng giờ check-in động thay vì hardcode 14:00
+        LocalDateTime checkInDateTime = booking.getCheckInDate().atTime(defaultCheckInHour, 0);
         long hoursUntilCheckIn = ChronoUnit.HOURS.between(LocalDateTime.now(), checkInDateTime);
 
         Long roomTypeId = booking.getRoom().getRoomType().getId();
@@ -142,7 +147,8 @@ public class BookingService {
 
         BigDecimal refundAmount = BigDecimal.ZERO;
         if (totalPaid.compareTo(BigDecimal.ZERO) > 0 && refundPercent.compareTo(BigDecimal.ZERO) > 0) {
-            refundAmount = totalPaid.multiply(refundPercent).divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+            // Đối với VNĐ, ta làm tròn về số nguyên (0 chữ số thập phân) để tránh ra tiền lẻ
+            refundAmount = totalPaid.multiply(refundPercent).divide(new BigDecimal("100"), 0, RoundingMode.HALF_UP);
 
             if (refundAmount.compareTo(BigDecimal.ZERO) > 0) {
                 Payment refund = new Payment();

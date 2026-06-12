@@ -41,6 +41,7 @@ public class AdminBookingService {
     private final BookingService bookingService;
     private final EntityManager entityManager;
     private final CancellationPolicyRepository cancellationPolicyRepository;
+    private final com.yo.apihotelbooking.repository.RoomRepository roomRepository;
 
     @Transactional(readOnly = true)
     public Page<BookingResponse> getAllBookings(AdminBookingFilterRequest filter) {
@@ -105,7 +106,7 @@ public class AdminBookingService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public BookingResponse cancelBooking(Long id, String reason) {
+    public BookingResponse cancelBooking(Long id, String reason, BigDecimal customRefundPercent) {
         Booking booking = findOrThrow(id);
         BookingStatus oldStatus = booking.getStatus();
         booking.setStatus(BookingStatus.CANCELLED);
@@ -115,7 +116,12 @@ public class AdminBookingService {
         LocalDateTime checkInDateTime = booking.getCheckInDate().atTime(14, 0);
         long hoursUntilCheckIn = java.time.temporal.ChronoUnit.HOURS.between(LocalDateTime.now(), checkInDateTime);
 
-        BigDecimal refundPercent = bookingService.getRefundPercentByPolicy(booking.getRoom().getRoomType().getId(), hoursUntilCheckIn);
+        BigDecimal refundPercent;
+        if (customRefundPercent != null) {
+            refundPercent = customRefundPercent;
+        } else {
+            refundPercent = bookingService.getRefundPercentByPolicy(booking.getRoom().getRoomType().getId(), hoursUntilCheckIn);
+        }
 
         List<Payment> payments = paymentRepository.findByBookingId(id);
         BigDecimal totalPaid = payments.stream()
@@ -177,6 +183,40 @@ public class AdminBookingService {
         bookingService.recalculatePaymentStatus(id);
         entityManager.refresh(booking);
 
+        return toResponse(booking);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public BookingResponse changeRoom(Long bookingId, Long newRoomId, String reason) {
+        Booking booking = findOrThrow(bookingId);
+        
+        if (booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus() == BookingStatus.CHECKED_OUT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể đổi phòng cho đơn đã hủy hoặc đã trả phòng.");
+        }
+
+        com.yo.apihotelbooking.schemas.domain.Room newRoom = roomRepository.findById(newRoomId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng mới."));
+
+        List<Booking> conflicts = bookingRepository.findConflictingBookings(newRoomId, booking.getCheckInDate(), booking.getCheckOutDate());
+        if (!conflicts.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Phòng " + newRoom.getRoomNumber() + " đã có người đặt trong khoảng thời gian này.");
+        }
+
+        com.yo.apihotelbooking.schemas.domain.Room oldRoom = booking.getRoom();
+        booking.setRoom(newRoom);
+
+        bookingRepository.saveAndFlush(booking);
+
+        BookingStatusHistory history = new BookingStatusHistory();
+        history.setBooking(booking);
+        history.setOldStatus(booking.getStatus());
+        history.setNewStatus(booking.getStatus());
+        history.setChangedBy(SecurityUtils.getCurrentUser());
+        history.setNote("Admin chuyển từ phòng " + oldRoom.getRoomNumber() + " sang phòng " + newRoom.getRoomNumber() + ". Giá cũ được giữ nguyên. Lý do: " + reason);
+        history.setChangedAt(LocalDateTime.now());
+        historyRepository.save(history);
+
+        entityManager.refresh(booking);
         return toResponse(booking);
     }
 

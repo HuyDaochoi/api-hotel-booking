@@ -45,8 +45,18 @@ public class AdminBookingController {
     @PutMapping("/{id}/cancel")
     public ResponseEntity<BookingResponse> cancelBooking(
             @PathVariable Long id,
-            @RequestParam(required = false, defaultValue = "Admin hủy đơn chủ động") String reason) {
-        BookingResponse response = adminBookingService.cancelBooking(id, reason);
+            @RequestParam(required = false, defaultValue = "Admin hủy đơn chủ động") String reason,
+            @RequestParam(required = false) java.math.BigDecimal refundPercent) {
+        BookingResponse response = adminBookingService.cancelBooking(id, reason, refundPercent);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/change-room")
+    public ResponseEntity<BookingResponse> changeRoom(
+            @PathVariable Long id,
+            @RequestParam Long newRoomId,
+            @RequestParam(required = false, defaultValue = "Khách đồng ý đổi phòng do sự cố") String reason) {
+        BookingResponse response = adminBookingService.changeRoom(id, newRoomId, reason);
         return ResponseEntity.ok(response);
     }
 

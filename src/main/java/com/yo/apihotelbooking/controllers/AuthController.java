@@ -85,8 +85,6 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────
-
     private void setRefreshTokenCookie(HttpServletResponse response, String tokenValue) {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE, tokenValue);
         cookie.setHttpOnly(true);                  
