@@ -1,0 +1,3889 @@
+{
+  "info": {
+    "_postman_id": "9bcc1ea2-051e-49fb-92d3-4e4b4e21159e",
+    "name": "Hotel Booking API — Full Flow",
+    "description": "Collection kiểm tra toàn bộ API theo luồng nghiệp vụ từ gốc đến ngọn.\n\n**Thứ tự chạy:**\n1. AUTH — Đăng ký / Đăng nhập\n2. USER PROFILE — Xem & cập nhật hồ sơ\n3. ADMIN SETUP — Tạo loại phòng, tiện nghi, hình ảnh, phòng, quy tắc giá\n4. USER FLOW — Xem phòng, ước tính giá, đặt phòng, thanh toán, hủy\n5. ADMIN BOOKING OPS — Xác nhận, check-in, check-out, no-show, hủy\n6. ADMIN PAYMENTS — Xác nhận / từ chối thanh toán\n7. ADMIN USER MGMT — Tạo, sửa, khóa, reset password\n8. REPORTS — Báo cáo doanh thu, lấp đầy, phòng phổ biến\n\n**Biến môi trường cần thiết:**\n- `baseUrl` : http://localhost:8080\n- `accessToken` : tự động set sau khi login\n- `adminToken` : tự động set sau khi admin login\n- `bookingId`, `roomId`, `roomTypeId`, `paymentId`, `userId` : tự động set",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "45187556"
+  },
+  "item": [
+    {
+      "name": "1. AUTH",
+      "item": [
+        {
+          "name": "1.1 Register (Customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@test.com\",\n  \"username\": \"customer01\",\n  \"password\": \"Password123\",\n  \"fullName\": \"Nguyễn Văn A\",\n  \"phone\": \"0901234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Login (Customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "console.log('Customer token saved');"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user1@gmail.com\",\n  \"password\": \"123123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Login (Admin) ★",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "if (json.accessToken) pm.collectionVariables.set('adminToken', json.accessToken);",
+                  "console.log('Admin token saved');"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@gmail.com\",\n  \"password\": \"123123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh-token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh-token"
+              ]
+            },
+            "description": "refreshToken được gửi tự động qua HttpOnly Cookie (set bởi login/register)"
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
+      "description": "Đăng ký, đăng nhập, refresh, logout. Chạy Admin Login để lấy adminToken dùng cho các bước setup."
+    },
+    {
+      "name": "2. USER PROFILE",
+      "item": [
+        {
+          "name": "2.1 Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Update My Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5ODAxNzI1LCJleHAiOjE3Nzk4MDI2MjV9.-tNz0b5924vBnjLmq46Njv215zimHHi-AXjqECfOBzw8Nj_Ynj_j8L3VNG5EBQOM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn Admin\",\n  \"phone\": \"0912345611\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password123\",\n  \"newPassword\": \"NewPass@456\",\n  \"confirmPassword\": \"NewPass@456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                "password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Xem & cập nhật hồ sơ cá nhân của customer đang login."
+    },
+    {
+      "name": "3. ADMIN SETUP — Loại phòng & Phòng",
+      "item": [
+        {
+          "name": "3.1 [Admin] Create Room Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('roomTypeId', id);",
+                  "console.log('roomTypeId =', id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5NTE0ODcxLCJleHAiOjE3Nzk1MTU3NzF9.b3LoTLIxcqvd1W74USU0VczP9bkNHb5ZMKT6oh9BFlJMMHH7J8j3CEl_eHPO1s9q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Deluxe Ocean View\",\n  \"description\": \"Phòng Deluxe nhìn ra biển, diện tích 45m²\",\n  \"basePrice\": 1500000,\n  \"maxCapacity\": 2,\n  \"amenityIds\": [1, 2, 5], \n  \"images\": [\n    {\n      \"imageUrl\": \"https://example.com/vip.jpg\",\n      \"caption\": \"Phòng khách VIP\"\n    }],\n  \"cancellationPolicy\": \"Miễn phí hủy trước 48 giờ. Sau đó tính 1 đêm.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-types"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 [Admin] Get All Room Types",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5ODAxNzI1LCJleHAiOjE3Nzk4MDI2MjV9.-tNz0b5924vBnjLmq46Njv215zimHHi-AXjqECfOBzw8Nj_Ynj_j8L3VNG5EBQOM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/room-types",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "room-types"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.2 [Admin] Get All Room Types",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/room-types",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "room-types"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "2863"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:34:39 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": [\n        {\n            \"id\": 1,\n            \"name\": \"Standard\",\n            \"description\": \"Phòng tiêu chuẩn, view thành phố\",\n            \"basePrice\": 500000,\n            \"maxCapacity\": 2,\n            \"cancellationPolicy\": \"Hủy miễn phí trước 24h check-in\",\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": [\n                {\n                    \"amenityName\": \"WiFi miễn phí\",\n                    \"iconCode\": null,\n                    \"id\": 1\n                },\n                {\n                    \"amenityName\": \"Điều hòa\",\n                    \"iconCode\": null,\n                    \"id\": 2\n                },\n                {\n                    \"amenityName\": \"TV 32 inch\",\n                    \"iconCode\": null,\n                    \"id\": 3\n                },\n                {\n                    \"amenityName\": \"Minibar\",\n                    \"iconCode\": null,\n                    \"id\": 4\n                }\n            ]\n        },\n        {\n            \"id\": 2,\n            \"name\": \"Phòng VIP Deluxe King\",\n            \"description\": \"Bao gồm mini-bar và dịch vụ dọn phòng 24/7\",\n            \"basePrice\": 2500000,\n            \"maxCapacity\": 2,\n            \"cancellationPolicy\": null,\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": [\n                {\n                    \"amenityName\": \"WiFi miễn phí\",\n                    \"iconCode\": null,\n                    \"id\": 5\n                },\n                {\n                    \"amenityName\": \"Điều hòa\",\n                    \"iconCode\": null,\n                    \"id\": 6\n                },\n                {\n                    \"amenityName\": \"TV 43 inch\",\n                    \"iconCode\": null,\n                    \"id\": 7\n                },\n                {\n                    \"amenityName\": \"Minibar\",\n                    \"iconCode\": null,\n                    \"id\": 8\n                },\n                {\n                    \"amenityName\": \"Bồn tắm\",\n                    \"iconCode\": null,\n                    \"id\": 9\n                }\n            ]\n        },\n        {\n            \"id\": 3,\n            \"name\": \"Suite\",\n            \"description\": \"Phòng hạng sang, phòng khách riêng, 80m²\",\n            \"basePrice\": 2000000,\n            \"maxCapacity\": 4,\n            \"cancellationPolicy\": \"Hủy miễn phí trước 72h check-in\",\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": [\n                {\n                    \"amenityName\": \"WiFi miễn phí\",\n                    \"iconCode\": null,\n                    \"id\": 10\n                },\n                {\n                    \"amenityName\": \"Điều hòa\",\n                    \"iconCode\": null,\n                    \"id\": 11\n                },\n                {\n                    \"amenityName\": \"TV 55 inch\",\n                    \"iconCode\": null,\n                    \"id\": 12\n                },\n                {\n                    \"amenityName\": \"Minibar\",\n                    \"iconCode\": null,\n                    \"id\": 13\n                },\n                {\n                    \"amenityName\": \"Bồn tắm Jacuzzi\",\n                    \"iconCode\": null,\n                    \"id\": 14\n                },\n                {\n                    \"amenityName\": \"Phòng khách riêng\",\n                    \"iconCode\": null,\n                    \"id\": 15\n                }\n            ]\n        },\n        {\n            \"id\": 4,\n            \"name\": \"Family\",\n            \"description\": \"Phòng gia đình, 2 giường đôi, 60m²\",\n            \"basePrice\": 1200000,\n            \"maxCapacity\": 4,\n            \"cancellationPolicy\": \"Hủy miễn phí trước 48h check-in\",\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": [\n                {\n                    \"amenityName\": \"WiFi miễn phí\",\n                    \"iconCode\": null,\n                    \"id\": 16\n                },\n                {\n                    \"amenityName\": \"Điều hòa\",\n                    \"iconCode\": null,\n                    \"id\": 17\n                },\n                {\n                    \"amenityName\": \"TV 43 inch\",\n                    \"iconCode\": null,\n                    \"id\": 18\n                },\n                {\n                    \"amenityName\": \"Minibar\",\n                    \"iconCode\": null,\n                    \"id\": 19\n                },\n                {\n                    \"amenityName\": \"Giường tầng trẻ em\",\n                    \"iconCode\": null,\n                    \"id\": 20\n                }\n            ]\n        },\n        {\n            \"id\": 5,\n            \"name\": \"Normal\",\n            \"description\": \"Phòng Normal\",\n            \"basePrice\": 200000,\n            \"maxCapacity\": 2,\n            \"cancellationPolicy\": \"Hủy miễn phí trước 24h check-in\",\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": []\n        },\n        {\n            \"id\": 6,\n            \"name\": \"Love\",\n            \"description\": \"Love\",\n            \"basePrice\": 200000,\n            \"maxCapacity\": 2,\n            \"cancellationPolicy\": null,\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": []\n        },\n        {\n            \"id\": 7,\n            \"name\": \"Spring\",\n            \"description\": \"Spring\",\n            \"basePrice\": 2200000,\n            \"maxCapacity\": 5,\n            \"cancellationPolicy\": null,\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": []\n        },\n        {\n            \"id\": 8,\n            \"name\": \"Deluxe Ocean View\",\n            \"description\": \"Phòng Deluxe nhìn ra biển, diện tích 45m²\",\n            \"basePrice\": 1500000,\n            \"maxCapacity\": 2,\n            \"cancellationPolicy\": \"Miễn phí hủy trước 48 giờ. Sau đó tính 1 đêm.\",\n            \"isActive\": true,\n            \"images\": [],\n            \"amenities\": []\n        }\n    ],\n    \"timestamp\": \"2026-05-20 23:34:39\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.3 [Admin] Get Room Type By ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5ODAxNzI1LCJleHAiOjE3Nzk4MDI2MjV9.-tNz0b5924vBnjLmq46Njv215zimHHi-AXjqECfOBzw8Nj_Ynj_j8L3VNG5EBQOM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/room-types/{{roomTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "room-types",
+                "{{roomTypeId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.3 [Admin] Get Room Type By ID",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/room-types/{{roomTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "room-types",
+                    "{{roomTypeId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "345"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:34:24 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Success\",\n    \"data\": {\n        \"id\": 8,\n        \"name\": \"Deluxe Ocean View\",\n        \"description\": \"Phòng Deluxe nhìn ra biển, diện tích 45m²\",\n        \"basePrice\": 1500000,\n        \"maxCapacity\": 2,\n        \"cancellationPolicy\": \"Miễn phí hủy trước 48 giờ. Sau đó tính 1 đêm.\",\n        \"isActive\": true,\n        \"images\": [],\n        \"amenities\": []\n    },\n    \"timestamp\": \"2026-05-20 23:34:24\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.4 [Admin] Update Room Type",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5NTE0ODcxLCJleHAiOjE3Nzk1MTU3NzF9.b3LoTLIxcqvd1W74USU0VczP9bkNHb5ZMKT6oh9BFlJMMHH7J8j3CEl_eHPO1s9q",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Deluxe Ocean View\",\n  \"description\": \"Phòng Deluxe nhìn ra biển, diện tích 45m²\",\n  \"basePrice\": 1500000,\n  \"maxCapacity\": 2,\n  \"amenityIds\": [1, 2, 5,8,6], \n  \"images\": [\n    {\n      \"imageUrl\": \"https://example.com/vip.jpg\",\n      \"caption\": \"Phòng khách VIP\"\n    }],\n  \"cancellationPolicy\": \"Miễn phí hủy trước 48 giờ. Sau đó tính 1 đêm.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-types/{{roomTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-types",
+                "{{roomTypeId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.4 [Admin] Update Room Type",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Deluxe Ocean View (Updated)\",\n  \"description\": \"Phòng Deluxe cao cấp nhìn ra biển\",\n  \"basePrice\": 1800000,\n  \"maxCapacity\": 3,\n  \"cancellationPolicy\": \"Miễn phí hủy trước 72 giờ.\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-types/{{roomTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-types",
+                    "{{roomTypeId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "318"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:34:55 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Updated\",\n    \"data\": {\n        \"id\": 8,\n        \"name\": \"Deluxe Ocean View (Updated)\",\n        \"description\": \"Phòng Deluxe cao cấp nhìn ra biển\",\n        \"basePrice\": 1800000,\n        \"maxCapacity\": 3,\n        \"cancellationPolicy\": \"Miễn phí hủy trước 72 giờ.\",\n        \"isActive\": true,\n        \"images\": [],\n        \"amenities\": []\n    },\n    \"timestamp\": \"2026-05-20 23:34:55\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.5 [Admin] Add Room Amenity",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const id = json.id;",
+                  "if (id) pm.collectionVariables.set('amenityId', id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5ODAxNzI1LCJleHAiOjE3Nzk4MDI2MjV9.-tNz0b5924vBnjLmq46Njv215zimHHi-AXjqECfOBzw8Nj_Ynj_j8L3VNG5EBQOM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \n  \"amenityName\": \"Tu Lanh 1\",\n  \"iconCode\": \"Tu Lanh 1\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-amenities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-amenities"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.5 [Admin] Add Room Amenity",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"amenityName\": \"WiFi miễn phí\",\n  \"iconCode\": \"wifi\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-amenities",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-amenities"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:35:37 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"amenityName\": \"WiFi miễn phí\",\n    \"iconCode\": \"wifi\",\n    \"id\": 21\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.6 [Admin] Get Amenities By Room Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-amenities/room-type/{{roomTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-amenities",
+                "room-type",
+                "{{roomTypeId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.6 [Admin] Get Amenities By Room Type",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-amenities/room-type/{{roomTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-amenities",
+                    "room-type",
+                    "{{roomTypeId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:36:20 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"amenityName\": \"WiFi miễn phí\",\n        \"iconCode\": \"wifi\",\n        \"id\": 21\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "3.7 [Admin] Update Room Amenity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amenityName\": \"WiFi tốc độ cao\",\n  \"iconCode\": \"wifi-Cao\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-amenities/{{amenityId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-amenities",
+                "{{amenityId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.7 [Admin] Update Room Amenity",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"amenityName\": \"WiFi tốc độ cao\",\n  \"iconCode\": \"wifi-high\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-amenities/{{amenityId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-amenities",
+                    "{{amenityId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:36:34 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"amenityName\": \"WiFi tốc độ cao\",\n    \"iconCode\": \"wifi-high\",\n    \"id\": 21\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.8 [Admin] Add Room Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const id = json.id;",
+                  "if (id) pm.collectionVariables.set('imageId', id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"imageUrl\": \"https://example.com/images/deluxe-ocean-view.jpg\",\n  \"caption\": \"View từ ban công phòng Deluxe\",\n  \"isPrimary\": true,\n  \"sortOrder\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-images",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-images"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.8 [Admin] Add Room Image",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"imageUrl\": \"https://example.com/images/deluxe-ocean-view.jpg\",\n  \"caption\": \"View từ ban công phòng Deluxe\",\n  \"isPrimary\": true,\n  \"sortOrder\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-images",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-images"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:42:10 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"caption\": \"View từ ban công phòng Deluxe\",\n    \"id\": 1,\n    \"imageUrl\": \"https://example.com/images/deluxe-ocean-view.jpg\",\n    \"isPrimary\": true\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.9 [Admin] Get Images By Room Type",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-images/room-type/{{roomTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-images",
+                "room-type",
+                "{{roomTypeId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.9 [Admin] Get Images By Room Type",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-images/room-type/{{roomTypeId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-images",
+                    "room-type",
+                    "{{roomTypeId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:42:38 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n    {\n        \"caption\": \"View từ ban công phòng Deluxe\",\n        \"id\": 1,\n        \"imageUrl\": \"https://example.com/images/deluxe-ocean-view.jpg\",\n        \"isPrimary\": true\n    }\n]"
+            }
+          ]
+        },
+        {
+          "name": "3.10 [Admin] Update Room Image",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageUrl\": \"https://example.com/images/deluxe-updated.jpg\",\n  \"caption\": \"Ảnh cập nhật phòng Deluxe\",\n  \"isPrimary\": true,\n  \"sortOrder\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-images/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-images",
+                "{{imageId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.10 [Admin] Update Room Image",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"imageUrl\": \"https://example.com/images/deluxe-updated.jpg\",\n  \"caption\": \"Ảnh cập nhật phòng Deluxe\",\n  \"isPrimary\": true,\n  \"sortOrder\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/room-images/{{imageId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "room-images",
+                    "{{imageId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:42:47 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"caption\": \"Ảnh cập nhật phòng Deluxe\",\n    \"id\": 1,\n    \"imageUrl\": \"https://example.com/images/deluxe-updated.jpg\",\n    \"isPrimary\": true\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.11 [Admin] Create Room",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('roomId', id);",
+                  "console.log('roomId =', id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"roomNumber\": \"501\",\n  \"floor\": 5,\n  \"description\": \"Phòng 501 tầng 5 hướng biển\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/rooms",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "rooms"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.11 [Admin] Create Room",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"roomNumber\": \"501\",\n  \"floor\": 5,\n  \"description\": \"Phòng 501 tầng 5 hướng biển\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/rooms",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "rooms"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "535"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:43:03 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Created\",\n    \"data\": {\n        \"id\": 19,\n        \"roomNumber\": \"501\",\n        \"floor\": 5,\n        \"roomType\": {\n            \"id\": 8,\n            \"name\": \"Deluxe Ocean View (Updated)\",\n            \"description\": \"Phòng Deluxe cao cấp nhìn ra biển\",\n            \"basePrice\": 1800000,\n            \"maxCapacity\": 3,\n            \"cancellationPolicy\": null,\n            \"isActive\": true,\n            \"images\": [\n                {\n                    \"caption\": \"Ảnh cập nhật phòng Deluxe\",\n                    \"id\": 1,\n                    \"imageUrl\": \"https://example.com/images/deluxe-updated.jpg\",\n                    \"isPrimary\": true\n                }\n            ],\n            \"amenities\": [\n                {\n                    \"amenityName\": \"WiFi tốc độ cao\",\n                    \"iconCode\": \"wifi-high\",\n                    \"id\": 21\n                }\n            ]\n        }\n    },\n    \"timestamp\": \"2026-05-20 23:43:03\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.12 [Admin] Update Room",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"roomNumber\": \"501\",\n  \"floor\": 5,\n  \"description\": \"Phòng 501 — vừa được nâng cấp nội thất\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.12 [Admin] Update Room",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"roomNumber\": \"501\",\n  \"floor\": 5,\n  \"description\": \"Phòng 501 — vừa được nâng cấp nội thất\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/rooms/{{roomId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "rooms",
+                    "{{roomId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "535"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:43:13 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Updated\",\n    \"data\": {\n        \"id\": 19,\n        \"roomNumber\": \"501\",\n        \"floor\": 5,\n        \"roomType\": {\n            \"id\": 8,\n            \"name\": \"Deluxe Ocean View (Updated)\",\n            \"description\": \"Phòng Deluxe cao cấp nhìn ra biển\",\n            \"basePrice\": 1800000,\n            \"maxCapacity\": 3,\n            \"cancellationPolicy\": null,\n            \"isActive\": true,\n            \"images\": [\n                {\n                    \"caption\": \"Ảnh cập nhật phòng Deluxe\",\n                    \"id\": 1,\n                    \"imageUrl\": \"https://example.com/images/deluxe-updated.jpg\",\n                    \"isPrimary\": true\n                }\n            ],\n            \"amenities\": [\n                {\n                    \"amenityName\": \"WiFi tốc độ cao\",\n                    \"iconCode\": \"wifi-high\",\n                    \"id\": 21\n                }\n            ]\n        }\n    },\n    \"timestamp\": \"2026-05-20 23:43:13\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.13 [Admin] Create Pricing Rule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('pricingRuleId', id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiI1Iiwicm9sZXMiOlsiQURNSU4iXSwiaWF0IjoxNzc5ODAyNzU1LCJleHAiOjE3Nzk4MDM2NTV9.IM74BzV2bh0TyPlGCV4MIL694shXOCQm4peBeSrOd91nt8NqmSmgFFTmb49NxHnf",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"ruleName\": \"Hè 2026\",\n  \"ruleType\": \"SEASONAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-08-31\",\n  \"pricePercent\": 20,\n  \"minNights\": 2,\n  \"priority\": 10,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pricing-rules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pricing-rules"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.13 [Admin] Create Pricing Rule",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"ruleName\": \"Hè 2026\",\n  \"ruleType\": \"SEASONAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-08-31\",\n  \"pricePercent\": 20,\n  \"minNights\": 2,\n  \"priority\": 10,\n  \"isActive\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/pricing-rules",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "pricing-rules"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "251"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:43:29 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Tạo quy tắc mới thành công\",\n    \"data\": {\n        \"ruleName\": \"Hè 2026\",\n        \"ruleType\": \"SEASONAL\",\n        \"startDate\": \"2026-06-01\",\n        \"endDate\": \"2026-08-31\",\n        \"priceModifier\": null,\n        \"pricePercent\": 20,\n        \"priority\": 10\n    },\n    \"timestamp\": \"2026-05-20 23:43:29\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "FileAnh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('pricingRuleId', id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "31186d3c-44de-4759-81c3-dfb69f08499b",
+                  "src": "/C:/Users/hhuy0/OneDrive/Pictures/Nghien Phim/195541287.jpg"
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/upload",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "upload"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.13 [Admin] Create Pricing Rule",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"ruleName\": \"Hè 2026\",\n  \"ruleType\": \"SEASONAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-08-31\",\n  \"pricePercent\": 20,\n  \"minNights\": 2,\n  \"priority\": 10,\n  \"isActive\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/pricing-rules",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "pricing-rules"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "251"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:43:29 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Tạo quy tắc mới thành công\",\n    \"data\": {\n        \"ruleName\": \"Hè 2026\",\n        \"ruleType\": \"SEASONAL\",\n        \"startDate\": \"2026-06-01\",\n        \"endDate\": \"2026-08-31\",\n        \"priceModifier\": null,\n        \"pricePercent\": 20,\n        \"priority\": 10\n    },\n    \"timestamp\": \"2026-05-20 23:43:29\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "room-images",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('pricingRuleId', id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"roomTypeId\": 2, \r\n  \"imageUrl\": \"/uploads/1234abcd.jpg\", \r\n  \"caption\": \"Ảnh phòng Superior\",\r\n  \"isPrimary\": true\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/admin/room-images",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "admin",
+                "room-images"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.13 [Admin] Create Pricing Rule",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"ruleName\": \"Hè 2026\",\n  \"ruleType\": \"SEASONAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-08-31\",\n  \"pricePercent\": 20,\n  \"minNights\": 2,\n  \"priority\": 10,\n  \"isActive\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/pricing-rules",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "pricing-rules"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "251"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:43:29 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Tạo quy tắc mới thành công\",\n    \"data\": {\n        \"ruleName\": \"Hè 2026\",\n        \"ruleType\": \"SEASONAL\",\n        \"startDate\": \"2026-06-01\",\n        \"endDate\": \"2026-08-31\",\n        \"priceModifier\": null,\n        \"pricePercent\": 20,\n        \"priority\": 10\n    },\n    \"timestamp\": \"2026-05-20 23:43:29\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.14 [Admin] Get All Pricing Rules",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pricing-rules",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pricing-rules"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.14 [Admin] Get All Pricing Rules",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/pricing-rules",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "pricing-rules"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "1850"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:43:39 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Lấy danh sách thành công\",\n    \"data\": [\n        {\n            \"ruleName\": \"Siêu ưu đãi Mùa Hè Spring\",\n            \"ruleType\": \"SEASONAL\",\n            \"startDate\": \"2026-06-01\",\n            \"endDate\": \"2026-08-31\",\n            \"priceModifier\": null,\n            \"pricePercent\": 30,\n            \"priority\": 5\n        },\n        {\n            \"ruleName\": \"Siêu ưu đãi Mùa Hè Spring\",\n            \"ruleType\": \"SEASONAL\",\n            \"startDate\": \"2026-01-01\",\n            \"endDate\": \"2026-02-22\",\n            \"priceModifier\": null,\n            \"pricePercent\": 30,\n            \"priority\": 5\n        },\n        {\n            \"ruleName\": \"Weekend Surcharge\",\n            \"ruleType\": \"WEEKEND\",\n            \"startDate\": null,\n            \"endDate\": null,\n            \"priceModifier\": null,\n            \"pricePercent\": 15,\n            \"priority\": 3\n        },\n        {\n            \"ruleName\": \"Standard Weekday Deal\",\n            \"ruleType\": \"DISCOUNT\",\n            \"startDate\": \"2026-03-01\",\n            \"endDate\": \"2026-03-31\",\n            \"priceModifier\": null,\n            \"pricePercent\": -10,\n            \"priority\": 2\n        },\n        {\n            \"ruleName\": \"Tuan Trang Mat\",\n            \"ruleType\": \"WEEKEND\",\n            \"startDate\": null,\n            \"endDate\": null,\n            \"priceModifier\": null,\n            \"pricePercent\": 20,\n            \"priority\": 10\n        },\n        {\n            \"ruleName\": \"Phụ phí Cuối Tuần (T6-CN)\",\n            \"ruleType\": \"WEEKEND\",\n            \"startDate\": null,\n            \"endDate\": null,\n            \"priceModifier\": null,\n            \"pricePercent\": 20,\n            \"priority\": 1\n        },\n        {\n            \"ruleName\": \"Siêu ưu đãi Mùa Hè\",\n            \"ruleType\": \"SEASONAL\",\n            \"startDate\": \"2026-06-01\",\n            \"endDate\": \"2026-08-31\",\n            \"priceModifier\": null,\n            \"pricePercent\": 30,\n            \"priority\": 5\n        },\n        {\n            \"ruleName\": \"Phụ thu cuối tuần thứ 7 & CN\",\n            \"ruleType\": \"WEEKEND\",\n            \"startDate\": null,\n            \"endDate\": null,\n            \"priceModifier\": null,\n            \"pricePercent\": 20,\n            \"priority\": 10\n        },\n        {\n            \"ruleName\": \"Cao điểm du lịch hè 2026\",\n            \"ruleType\": \"SEASONAL\",\n            \"startDate\": \"2026-06-01\",\n            \"endDate\": \"2026-08-31\",\n            \"priceModifier\": null,\n            \"pricePercent\": 30,\n            \"priority\": 15\n        },\n        {\n            \"ruleName\": \"Spring mua xuan \",\n            \"ruleType\": \"SEASONAL\",\n            \"startDate\": \"2026-06-01\",\n            \"endDate\": \"2026-08-31\",\n            \"priceModifier\": null,\n            \"pricePercent\": 30,\n            \"priority\": 15\n        },\n        {\n            \"ruleName\": \"Hè 2026\",\n            \"ruleType\": \"SEASONAL\",\n            \"startDate\": \"2026-06-01\",\n            \"endDate\": \"2026-08-31\",\n            \"priceModifier\": null,\n            \"pricePercent\": 20,\n            \"priority\": 10\n        }\n    ],\n    \"timestamp\": \"2026-05-20 23:43:39\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "3.15 [Admin] Update Pricing Rule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"ruleName\": \"Hè 2026 (Updated)\",\n  \"ruleType\": \"SEASONAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-09-30\",\n  \"pricePercent\": 25,\n  \"minNights\": 1,\n  \"priority\": 10,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pricing-rules/{{pricingRuleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pricing-rules",
+                "{{pricingRuleId}}"
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "3.15 [Admin] Update Pricing Rule",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roomTypeId\": {{roomTypeId}},\n  \"ruleName\": \"Hè 2026 (Updated)\",\n  \"ruleType\": \"SEASONAL\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-09-30\",\n  \"pricePercent\": 25,\n  \"minNights\": 1,\n  \"priority\": 10,\n  \"isActive\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/pricing-rules/{{pricingRuleId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "pricing-rules",
+                    "{{pricingRuleId}}"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Content-Length",
+                  "value": "252"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:44:06 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"message\": \"Cập nhật thành công\",\n    \"data\": {\n        \"ruleName\": \"Hè 2026 (Updated)\",\n        \"ruleType\": \"SEASONAL\",\n        \"startDate\": \"2026-06-01\",\n        \"endDate\": \"2026-09-30\",\n        \"priceModifier\": null,\n        \"pricePercent\": 25,\n        \"priority\": 10\n    },\n    \"timestamp\": \"2026-05-20 23:44:06\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Admin tạo toàn bộ dữ liệu master: RoomType → Amenity → Image → Room → PricingRule"
+    },
+    {
+      "name": "4. USER FLOW — Xem phòng & Đặt phòng",
+      "item": [
+        {
+          "name": "4.1 Tim kiem Phong",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"checkIn\": \"2026-06-10\",\r\n  \"checkOut\": \"2026-06-15\",\r\n  \"numGuests\": 2\r\n\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/search",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "search"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Get Available Rooms",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rooms/available?checkIn=2026-07-10&checkOut=2026-07-15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rooms",
+                "available"
+              ],
+              "query": [
+                {
+                  "key": "checkIn",
+                  "value": "2026-07-10"
+                },
+                {
+                  "key": "checkOut",
+                  "value": "2026-07-15"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Get Room By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "xem gia cho ca chuyen bi vuong vo prici nao",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiIxMCIsInJvbGVzIjpbIkNVU1RPTUVSIl0sImlhdCI6MTc3OTcwNzY0NSwiZXhwIjoxNzc5NzA4NTQ1fQ.G0XhyKXplGVriVRrvpz1L_cysHDlQGF_Tz69n7BiembpYiOjYQeoDC6nfHReQXAD",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/pricing/estimate?roomId={{roomId}}&checkIn=2026-07-10&checkOut=2026-07-15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "pricing",
+                "estimate"
+              ],
+              "query": [
+                {
+                  "key": "roomId",
+                  "value": "{{roomId}}"
+                },
+                {
+                  "key": "checkIn",
+                  "value": "2026-07-10"
+                },
+                {
+                  "key": "checkOut",
+                  "value": "2026-07-15"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.5 Create Booking ★",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('bookingId', id);",
+                  "console.log('bookingId =', id);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": 1,\n  \"checkInDate\": \"2026-06-13\",\n  \"checkOutDate\": \"2026-06-18\",\n  \"numGuests\": 2,\n  \"specialRequests\": \"Cần giường đôi, tầng cao\",\n  \"paymentMethod\": \"BANK_TRANSFER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.6 Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/my?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "my"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.7 Get Booking Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "{{bookingId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.8 Get Payments Of Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const payments = json.data;",
+                  "if (payments && payments.length > 0) {",
+                  "  pm.collectionVariables.set('paymentId', payments[0].id);",
+                  "  console.log('paymentId =', payments[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/payments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "{{bookingId}}",
+                "payments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.9 Cancel My Booking (User)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            },
+            "description": "⚠️ Chỉ hủy khi booking còn trạng thái PENDING. Nếu đã test flow admin bên dưới, hãy tạo booking mới trước."
+          },
+          "response": []
+        },
+        {
+          "name": "New Request",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
+      "description": "Customer xem danh sách phòng, ước tính giá, tạo booking, xem booking, hủy booking."
+    },
+    {
+      "name": "5. ADMIN BOOKING OPS — Vận hành đặt phòng",
+      "item": [
+        {
+          "name": "5.1 [Admin] Get All Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings?page=0&size=20&sortBy=createdAt&sortDir=desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "5.1 [Admin] Get All Bookings",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/bookings?page=0&size=20&sortBy=createdAt&sortDir=desc",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "bookings"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    },
+                    {
+                      "key": "sortBy",
+                      "value": "createdAt"
+                    },
+                    {
+                      "key": "sortDir",
+                      "value": "desc"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": null,
+              "header": [
+                {
+                  "key": "X-Content-Type-Options",
+                  "value": "nosniff"
+                },
+                {
+                  "key": "X-XSS-Protection",
+                  "value": "0"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, no-store, max-age=0, must-revalidate"
+                },
+                {
+                  "key": "Pragma",
+                  "value": "no-cache"
+                },
+                {
+                  "key": "Expires",
+                  "value": "0"
+                },
+                {
+                  "key": "X-Frame-Options",
+                  "value": "DENY"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Transfer-Encoding",
+                  "value": "chunked"
+                },
+                {
+                  "key": "Date",
+                  "value": "Wed, 20 May 2026 16:45:28 GMT"
+                },
+                {
+                  "key": "Keep-Alive",
+                  "value": "timeout=60"
+                },
+                {
+                  "key": "Connection",
+                  "value": "keep-alive"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"content\": [\n        {\n            \"id\": 5,\n            \"user\": {\n                \"id\": 10,\n                \"email\": \"customer@test.com\",\n                \"username\": null,\n                \"fullName\": \"Nguyễn Văn A (Updated)\",\n                \"phone\": null,\n                \"role\": null,\n                \"isActive\": null\n            },\n            \"room\": {\n                \"id\": 18,\n                \"roomNumber\": \"P.303\",\n                \"floor\": null,\n                \"roomType\": {\n                    \"id\": 6,\n                    \"name\": \"Love\",\n                    \"description\": null,\n                    \"basePrice\": null,\n                    \"maxCapacity\": null,\n                    \"cancellationPolicy\": null,\n                    \"isActive\": true,\n                    \"images\": null,\n                    \"amenities\": null\n                }\n            },\n            \"checkInDate\": \"2026-07-10\",\n            \"checkOutDate\": \"2026-07-15\",\n            \"numGuests\": 2,\n            \"status\": \"CANCELLED\",\n            \"totalAmount\": 1110000,\n            \"specialRequests\": \"Cần giường đôi, tầng cao\",\n            \"createdAt\": \"2026-05-19T21:30:56\",\n            \"statusHistories\": null\n        },\n        {\n            \"id\": 4,\n            \"user\": {\n                \"id\": 7,\n                \"email\": \"user1@gmail.com\",\n                \"username\": null,\n                \"fullName\": \"Nguyen Van user\",\n                \"phone\": null,\n                \"role\": null,\n                \"isActive\": null\n            },\n            \"room\": {\n                \"id\": 17,\n                \"roomNumber\": \"P.302\",\n                \"floor\": null,\n                \"roomType\": {\n                    \"id\": 1,\n                    \"name\": \"Standard\",\n                    \"description\": null,\n                    \"basePrice\": null,\n                    \"maxCapacity\": null,\n                    \"cancellationPolicy\": null,\n                    \"isActive\": true,\n                    \"images\": null,\n                    \"amenities\": null\n                }\n            },\n            \"checkInDate\": \"2026-06-20\",\n            \"checkOutDate\": \"2026-06-23\",\n            \"numGuests\": 2,\n            \"status\": \"CANCELLED\",\n            \"totalAmount\": 1950000,\n            \"specialRequests\": \"Phòng tầng cao, view đẹp\",\n            \"createdAt\": \"2026-05-17T18:44:03\",\n            \"statusHistories\": null\n        },\n        {\n            \"id\": 3,\n            \"user\": {\n                \"id\": 7,\n                \"email\": \"user1@gmail.com\",\n                \"username\": null,\n                \"fullName\": \"Nguyen Van user\",\n                \"phone\": null,\n                \"role\": null,\n                \"isActive\": null\n            },\n            \"room\": {\n                \"id\": 15,\n                \"roomNumber\": \"101\",\n                \"floor\": 1,\n                \"roomType\": {\n                    \"id\": 1,\n                    \"name\": \"Standard\",\n                    \"description\": null,\n                    \"basePrice\": null,\n                    \"maxCapacity\": null,\n                    \"cancellationPolicy\": null,\n                    \"isActive\": true,\n                    \"images\": null,\n                    \"amenities\": null\n                }\n            },\n            \"checkInDate\": \"2026-06-20\",\n            \"checkOutDate\": \"2026-06-23\",\n            \"numGuests\": 2,\n            \"status\": \"CANCELLED\",\n            \"totalAmount\": 1950000,\n            \"specialRequests\": \"Phòng tầng cao, view đẹp\",\n            \"createdAt\": \"2026-05-16T19:44:42\",\n            \"statusHistories\": null\n        }\n    ],\n    \"empty\": false,\n    \"first\": true,\n    \"last\": true,\n    \"number\": 0,\n    \"numberOfElements\": 3,\n    \"pageable\": {\n        \"offset\": 0,\n        \"pageNumber\": 0,\n        \"pageSize\": 20,\n        \"paged\": true,\n        \"sort\": {\n            \"empty\": false,\n            \"sorted\": true,\n            \"unsorted\": false\n        },\n        \"unpaged\": false\n    },\n    \"size\": 20,\n    \"sort\": {\n        \"empty\": false,\n        \"sorted\": true,\n        \"unsorted\": false\n    },\n    \"totalElements\": 3,\n    \"totalPages\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "5.2 [Admin] Get Bookings — Filter by Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings?status=PENDING&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 [Admin/Staff] Confirm Booking ➜ CONFIRMED",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/confirm",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "confirm"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "change",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/admin/bookings/{{bookingId}}/change-room?newRoomId=4&reason=Khách đồng ý chuyển sang phòng 104",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "change-room"
+              ],
+              "query": [
+                {
+                  "key": "newRoomId",
+                  "value": "4"
+                },
+                {
+                  "key": "reason",
+                  "value": "Khách đồng ý chuyển sang phòng 104"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.4 [Admin/Staff] Check-In ➜ CHECKED_IN",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/check-in",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "check-in"
+              ]
+            },
+            "description": "Chỉ thực hiện được đúng ngày checkInDate"
+          },
+          "response": []
+        },
+        {
+          "name": "5.5 [Admin/Staff] Check-Out ➜ CHECKED_OUT",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/check-out",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "check-out"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.6 NoShow-ko co mat",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/no-show",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "no-show"
+              ]
+            },
+            "description": "Từ trạng thái CONFIRMED → NO_SHOW khi khách không đến"
+          },
+          "response": []
+        },
+        {
+          "name": "5.7 [Admin] Cancel Booking (Admin Force)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Phòng bị sự cố kỹ thuật, cần bảo trì gấp\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/bookings/{{bookingId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "bookings",
+                "{{bookingId}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.8 [Admin] Update Booking Status (Generic)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CONFIRMED\",\n  \"note\": \"Cập nhật thủ công bởi admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "bookings",
+                "{{bookingId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "CHuyenPPayment->success",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:8080/api/v1/admin/payments/12/success",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "payments",
+                "12",
+                "success"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Luồng đầy đủ: PENDING → CONFIRMED → CHECKED_IN → CHECKED_OUT. Nhánh phụ: NO_SHOW, CANCEL."
+    },
+    {
+      "name": "6. ADMIN PAYMENTS — Quản lý thanh toán",
+      "item": [
+        {
+          "name": "6.1 [Admin] Get All Payments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/payments?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 [Admin] Get All Payments — Filter",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/payments?status=PENDING&paymentMethod=BANK_TRANSFER&fromDate=2026-07-01&toDate=2026-07-31&page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                },
+                {
+                  "key": "paymentMethod",
+                  "value": "BANK_TRANSFER"
+                },
+                {
+                  "key": "fromDate",
+                  "value": "2026-07-01"
+                },
+                {
+                  "key": "toDate",
+                  "value": "2026-07-31"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 [Admin] Get Payment Detail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/payments/{{paymentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "payments",
+                "{{paymentId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.4 [Admin] Mark Payment SUCCESS ✅",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/payments/{{paymentId}}/success?transactionRef=TXN20260710001&note=Đã nhận chuyển khoản đầy đủ",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "payments",
+                "{{paymentId}}",
+                "success"
+              ],
+              "query": [
+                {
+                  "key": "transactionRef",
+                  "value": "TXN20260710001"
+                },
+                {
+                  "key": "note",
+                  "value": "Đã nhận chuyển khoản đầy đủ"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "6.5 [Admin] Mark Payment FAILED ❌",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/payments/{{paymentId}}/failed?reason=Sai số tài khoản, không nhận được tiền",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "admin",
+                "payments",
+                "{{paymentId}}",
+                "failed"
+              ],
+              "query": [
+                {
+                  "key": "reason",
+                  "value": "Sai số tài khoản, không nhận được tiền"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin xem, xác nhận, hoặc từ chối thanh toán."
+    },
+    {
+      "name": "7. ADMIN USER MANAGEMENT",
+      "item": [
+        {
+          "name": "7.1 [Admin] Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTI5NDg0MCwiZXhwIjoxNzc5ODk5NjQwfQ.oP0MvPCWawpJAbN-1-SxdJxme-HL3LRhQaH1TR8KurtviqEtIOJpuhg2O3HZ9kCP",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.2 [Admin] Get Users — Filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "?role=CUSTOMER&isActive=true&keyword=nguyen&page=0&size=10",
+              "query": [
+                {
+                  "key": "role",
+                  "value": "CUSTOMER"
+                },
+                {
+                  "key": "isActive",
+                  "value": "true"
+                },
+                {
+                  "key": "keyword",
+                  "value": "nguyen"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.3 [Admin] Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.4 [Admin] Create Staff Account",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "const id = json.data?.id || json.id;",
+                  "if (id) pm.collectionVariables.set('userId', id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff01@hotel.com\",\n  \"username\": \"staff01\",\n  \"password\": \"Staff@123456\",\n  \"fullName\": \"Trần Thị B\",\n  \"phone\": \"0987654321\",\n  \"role\": \"STAFF\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.5 [Admin] Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Trần Thị B (Updated)\",\n  \"phone\": \"0987654322\",\n  \"role\": \"STAFF\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.6 [Admin] Lock User 🔒",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/lock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{userId}}",
+                "lock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.7 [Admin] Unlock User 🔓",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/unlock",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{userId}}",
+                "unlock"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "7.8 [Admin] Reset User Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"ResetPass@789\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{userId}}",
+                "reset-password"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin/Staff quản lý tài khoản người dùng: tạo, xem, cập nhật, khóa, reset mật khẩu."
+    },
+    {
+      "name": "8. REPORTS — Báo cáo",
+      "item": [
+        {
+          "name": "8.1 [Admin] Occupancy Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJ0ZXN0QGdtYWlsLmNvbSIsImlhdCI6MTc3OTUwMDQzMywiZXhwIjoxNzgwMTA1MjMzfQ.U9ReYBaCalx22AcBJOLbwiZhIVt6XCtM4yMjp8gOtQXBsUC2586WZJj0Text3OOl",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/reports/occupancy?from=2026-01-01&to=2026-05-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "reports",
+                "occupancy"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-05-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "8.2 [Admin] Revenue Report (by month)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/reports/revenue?from=2026-01-01&to=2026-05-31&groupBy=month&Header=Bea",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "reports",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-05-31"
+                },
+                {
+                  "key": "groupBy",
+                  "value": "month"
+                },
+                {
+                  "key": "Header",
+                  "value": "Bea"
+                }
+              ]
+            },
+            "description": "Role: ADMIN only (không dùng được với STAFF token)"
+          },
+          "response": []
+        },
+        {
+          "name": "8.3 [Admin] Popular Room Types Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/reports/popular-room-types?from=2026-01-01&to=2026-05-31&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "reports",
+                "popular-room-types"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-05-31"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin/Staff xem báo cáo tỉ lệ lấp đầy, doanh thu, loại phòng phổ biến."
+    },
+    {
+      "name": "9. CLEANUP — Xóa dữ liệu test",
+      "item": [
+        {
+          "name": "9.1 [Admin] Delete Amenity",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-amenities/{{amenityId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-amenities",
+                "{{amenityId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9.2 [Admin] Delete Room Image",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-images/{{imageId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-images",
+                "{{imageId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9.3 [Admin] Delete Pricing Rule",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/pricing-rules/{{pricingRuleId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "pricing-rules",
+                "{{pricingRuleId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9.4 [Admin] Delete Room",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/rooms/{{roomId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "rooms",
+                "{{roomId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "9.5 [Admin] Delete Room Type",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/room-types/{{roomTypeId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "room-types",
+                "{{roomTypeId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Xóa các bản ghi đã tạo trong quá trình test. Chạy cuối cùng."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "roomTypeId",
+      "value": ""
+    },
+    {
+      "key": "roomId",
+      "value": ""
+    },
+    {
+      "key": "amenityId",
+      "value": ""
+    },
+    {
+      "key": "imageId",
+      "value": ""
+    },
+    {
+      "key": "pricingRuleId",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    },
+    {
+      "key": "paymentId",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ]
+}
